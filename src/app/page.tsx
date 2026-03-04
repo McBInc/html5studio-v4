@@ -417,7 +417,7 @@ export default function HomePage() {
 
   async function downloadPlatformZip(platform: "META" | "DISCORD" | "TIKTOK" | "LINKEDIN" | "TELEGRAM" | "YOUTUBE") {
     if (!file) {
-      setErr("Please upload a WebGL.zip first.");
+      setErr("Please select your WebGL.zip file above first to apply this patch. Browser patches require the file to be actively loaded in your current tab.");
       return;
     }
     setBusy(true);

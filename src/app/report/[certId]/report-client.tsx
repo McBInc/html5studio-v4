@@ -380,6 +380,8 @@ export default function ReportClient({
         <div style={{ fontWeight: 900, marginBottom: 6 }}>1) Apply Platform FixPacks</div>
         <div style={{ opacity: 0.8, fontSize: 13 }}>
           Platform SDK injections (Meta, TikTok, Telegram) and Hosting fixes (Vercel, Netlify) are generated seamlessly inside your browser on the Upload Dashboard to eliminate server size constraints.
+          <br /><br />
+          <b>Note:</b> You must apply these patches immediately after uploading your file. If you have navigated away, you will need to select your `.zip` file again on the dashboard to apply new patches.
         </div>
 
         <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
