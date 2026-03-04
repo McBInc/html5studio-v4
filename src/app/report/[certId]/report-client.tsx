@@ -402,6 +402,31 @@ export default function ReportClient({
           </button>
         </div>
 
+        {/* Next Step Section */}
+        <div style={{ marginTop: 24, padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #86efac", color: "#166534" }}>
+          <div style={{ fontWeight: 900, marginBottom: 8 }}>✅ Next Step: Bring Your Game Online</div>
+          <div style={{ fontSize: 13, marginBottom: 12, lineHeight: 1.5 }}>
+            To generate your official certificate in Step 2 below, you need a Live URL. Drag and drop the <b>FixPack .zip</b> you just downloaded directly into Netlify Drop to get your live link instantly.
+          </div>
+          <a
+            href="https://app.netlify.com/drop"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-block",
+              padding: "8px 14px",
+              borderRadius: 8,
+              background: "#00c7b7", // Netlify Teal
+              color: "#fff",
+              fontWeight: 900,
+              textDecoration: "none",
+              fontSize: 14
+            }}
+          >
+            Deploy on Netlify Drop ↗
+          </a>
+        </div>
+
         {patchMsg && <div style={{ marginTop: 10, opacity: 0.9 }}>{patchMsg}</div>}
       </div>
 
