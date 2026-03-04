@@ -24,6 +24,7 @@ type ApiBuild = {
     targetPlatformId: string | null;
     targetHostId: string | null;
   };
+  certId?: string | null;
 };
 
 type ApiProject = {
@@ -196,9 +197,15 @@ function BuildRow({ b }: { b: ApiBuild }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Link className="rounded-xl px-3 py-2 border" href={`/build/${b.id}`}>
-          View
-        </Link>
+        {b.certId ? (
+          <Link className="rounded-xl px-3 py-2 border bg-green-600 text-white font-bold" href={`/report/${b.certId}`}>
+            View Certificate
+          </Link>
+        ) : (
+          <Link className="rounded-xl px-3 py-2 border" href={`/build/${b.id}`}>
+            View
+          </Link>
+        )}
         <Link className="rounded-xl px-3 py-2 border bg-black text-white" href={`/build/${b.id}/launch`}>
           Launch Wizard
         </Link>

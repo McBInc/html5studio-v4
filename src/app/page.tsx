@@ -413,8 +413,8 @@ export default function HomePage() {
 <script>
 (function() {
     const overlay = document.createElement('div');
-    overlay.style = "position:fixed;top:0;right:0;width:320px;height:100vh;background:rgba(0,0,0,0.95);color:${color};z-index:999999;padding:20px;font-family:monospace;border-left:4px solid ${color};pointer-events:none;overflow-y:auto;box-sizing:border-box;box-shadow:-5px 0 25px rgba(0,0,0,0.8);";
-    overlay.innerHTML = "<b style='font-size:16px;color:#fff;'>HUD DIAGNOSIS</b><hr style='border-color:#444;margin:15px 0;'/>${hudTitle}";
+    overlay.style = "position:fixed;top:0;right:0;width:340px;height:100vh;background:rgba(0,0,0,0.7);color:${color};z-index:999999;padding:20px;font-family:monospace;border-left:4px solid ${color};pointer-events:none;overflow-y:auto;box-sizing:border-box;box-shadow:-5px 0 25px rgba(0,0,0,0.8);backdrop-filter:blur(3px);";
+    overlay.innerHTML = "<b style='font-size:16px;color:#fff;text-shadow: 1px 1px 2px #000;'>HUD DIAGNOSIS</b><hr style='border-color:#444;margin:15px 0;'/>${hudTitle}";
     document.body.appendChild(overlay);
 })();
 </script>

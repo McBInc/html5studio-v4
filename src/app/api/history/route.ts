@@ -46,14 +46,15 @@ export async function GET() {
         status: b.status,
         versionLabel: b.versionLabel,
         buildNumber: b.buildNumber,
+        certId: b.certId,
         launch: b.launchProfile
           ? {
-              readinessScore: b.launchProfile.readinessScore,
-              platformFitScore: b.launchProfile.platformFitScore,
-              hostCompatibilityScore: b.launchProfile.hostCompatibilityScore,
-              targetPlatformId: b.launchProfile.targetPlatformId,
-              targetHostId: b.launchProfile.targetHostId,
-            }
+            readinessScore: b.launchProfile.readinessScore,
+            platformFitScore: b.launchProfile.platformFitScore,
+            hostCompatibilityScore: b.launchProfile.hostCompatibilityScore,
+            targetPlatformId: b.launchProfile.targetPlatformId,
+            targetHostId: b.launchProfile.targetHostId,
+          }
           : null,
       })),
     }));

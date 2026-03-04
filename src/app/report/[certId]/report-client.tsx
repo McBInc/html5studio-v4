@@ -207,18 +207,26 @@ export default function ReportClient({
   const headerCert = n.ok ? n.certId : certId || "(missing)";
 
   return (
-    <div style={{ padding: 20, maxWidth: 980, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline", flexWrap: "wrap" }}>
+    <div style={{ padding: "40px 60px", maxWidth: 1000, margin: "40px auto 80px", border: "14px solid #1a1a1a", outline: "4px solid #1a1a1a", outlineOffset: "6px", backgroundColor: "#ffffff", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", borderRadius: 4 }}>
+      {/* Fancy seal mark */}
+      <div style={{ position: "absolute", top: 50, right: 60, width: 90, height: 90, border: "6px double #1a1a1a", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", textTransform: "uppercase", fontWeight: 900, fontSize: 12, textAlign: "center", letterSpacing: 2, opacity: 0.08, transform: "rotate(-12deg)" }}>
+        HTML5<br />SECURE
+      </div>
+
+      <div style={{ textAlign: "center", marginBottom: 40, borderBottom: "2px solid #eaeaea", paddingBottom: 30 }}>
+        <h1 style={{ fontSize: 46, margin: 0, textTransform: "uppercase", letterSpacing: 4, fontFamily: "Georgia, serif", color: "#111" }}>Official Certificate</h1>
+        <div style={{ fontSize: 18, marginTop: 12, opacity: 0.6, letterSpacing: 2, textTransform: "uppercase", fontWeight: 700 }}>WebGL Platform Compliance & Security</div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 40 }}>
         <div>
-          <h1 style={{ fontSize: 32, margin: 0 }}>WebGL Certification Report</h1>
-          <div style={{ marginTop: 6, opacity: 0.75 }}>
-            Project: <b>{n.ok ? n.projectName : "—"}</b>
-          </div>
+          <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, opacity: 0.5, fontWeight: 900 }}>Licensed Software</div>
+          <div style={{ fontSize: 26, fontWeight: 900, marginTop: 6, color: "#222" }}>{n.ok ? n.projectName : "—"}</div>
         </div>
 
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "monospace", fontSize: 12, opacity: 0.7 }}>CERT ID</div>
-          <div style={{ fontFamily: "monospace", fontWeight: 900 }}>{headerCert}</div>
+          <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, opacity: 0.5, fontWeight: 900 }}>Certificate ID</div>
+          <div style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 900, marginTop: 6, color: "#222" }}>{headerCert}</div>
         </div>
       </div>
 
@@ -401,6 +409,21 @@ export default function ReportClient({
           >
             📋 View Client Projects (History)
           </a>
+          <button
+            onClick={() => window.print()}
+            style={{
+              padding: "10px 14px",
+              borderRadius: 10,
+              border: "1px solid #111",
+              background: "#fff",
+              color: "#111",
+              cursor: "pointer",
+              fontWeight: 900,
+            }}
+            type="button"
+          >
+            🖨️ Print Certificate
+          </button>
         </div>
 
         {/* Next Step Section */}
