@@ -183,7 +183,7 @@ export default function ReportClient({
       const json = await res.json().catch(() => null);
       if (!res.ok) return setIssueMsg(json?.error || `Issue failed (${res.status})`);
 
-      setIssueMsg("✅ Certificate issued.");
+      setIssueMsg("✅ Certificate issued! This page is now officially certified. Send this URL to your client.");
       if (json.updated?.certId && json.updated.certId !== cert) {
         window.location.href = `/report/${json.updated.certId}`;
         return;
@@ -385,21 +385,22 @@ export default function ReportClient({
         </div>
 
         <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <button
-            onClick={goDownloadFixPack}
+          <a
+            href="/history"
             style={{
+              display: "inline-block",
               padding: "10px 14px",
               borderRadius: 10,
               border: "1px solid #111",
               background: "#111",
               color: "#fff",
+              textDecoration: "none",
               cursor: "pointer",
               fontWeight: 900,
             }}
-            type="button"
           >
-            🔙 Return to Dashboard
-          </button>
+            📋 View Client Projects (History)
+          </a>
         </div>
 
         {/* Next Step Section */}
@@ -445,6 +446,9 @@ export default function ReportClient({
             <a href={n.liveUrl} target="_blank" rel="noreferrer" style={{ fontWeight: 900 }}>
               {n.liveUrl}
             </a>
+            <div style={{ marginTop: 10, padding: 10, background: "#d1fae5", color: "#065f46", border: "1px solid #34d399", borderRadius: 8, fontSize: 13, fontWeight: "bold" }}>
+              🎉 This page is now an official compliance certificate. You can send this exact Report URL to your client!
+            </div>
           </div>
         ) : (
           <div style={{ opacity: 0.75 }}>Live URL: Pending</div>

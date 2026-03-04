@@ -402,7 +402,7 @@ export default function HomePage() {
 (function() {
     const overlay = document.createElement('div');
     overlay.style = "position:fixed;top:0;right:0;width:250px;height:100vh;background:rgba(0,0,0,0.9);color:${color};z-index:9999;padding:15px;font-family:monospace;border-left:2px solid ${color};pointer-events:none;overflow-y:auto;";
-    overlay.innerHTML = "<b style='font-size:14px;color:#fff;'>HUD DIAGNOSIS</b><hr style='border-color:#333;'/>${hudTitle}<hr style='border-color:#333;'><div id='h5s-logs' style='font-size:11px;opacity:0.8;word-break:break-all;'>Waiting for logs...</div>";
+    overlay.innerHTML = "<b style='font-size:14px;color:#fff;'>HUD DIAGNOSIS</b><hr style='border-color:#333;'/>${hudTitle}";
     document.body.appendChild(overlay);
 })();
 </script>
