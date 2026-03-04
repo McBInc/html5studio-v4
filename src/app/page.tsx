@@ -4,6 +4,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import JSZip from "jszip";
 import { generateFixPack, type ScanResponse } from "@/lib/fixpack/generateFixPack";
+import { runBrowserPlatformAudits } from "@/lib/scanners/browserPlatformAudits";
+import { applyPlatformPatchBrowser } from "@/lib/patches/browserPlatformPatchers";
 import { useSession, signIn } from "next-auth/react";
 
 type MePayload =
@@ -110,13 +112,13 @@ export default function HomePage() {
     try {
       const savedProject = localStorage.getItem(PROJECT_KEY) || "Untitled Game";
       setProjectName(savedProject);
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
     try {
       localStorage.setItem(PROJECT_KEY, projectName || "Untitled Game");
-    } catch {}
+    } catch { }
   }, [projectName]);
 
   async function refreshMe() {
@@ -124,7 +126,7 @@ export default function HomePage() {
       const res = await fetch("/api/me", { cache: "no-store" });
       const json = (await res.json()) as MePayload;
       setMe(json);
-    } catch {}
+    } catch { }
   }
 
   useEffect(() => {
@@ -211,7 +213,7 @@ export default function HomePage() {
               memory_settings_detected_bytes.push(n);
             }
           }
-        } catch {}
+        } catch { }
       }
       memory_settings_detected_bytes = Array.from(new Set(memory_settings_detected_bytes)).sort((a, b) => a - b);
 
@@ -272,7 +274,11 @@ export default function HomePage() {
       );
       files.sort((a, b) => b.size_bytes - a.size_bytes);
 
-      const s: ScanResponse = {
+      const { prefix } = findUnityRootPrefix(Object.keys(zip.files).filter(k => !zip.files[k].dir));
+      const unityPrefix = prefix || "";
+      const platformAudits = await runBrowserPlatformAudits(zip, unityPrefix);
+
+      const s: ScanResponse & any = {
         kind: "webgl_build_scan",
         quick_score,
         compression: { brotli_present, gzip_present },
@@ -280,6 +286,7 @@ export default function HomePage() {
         files,
         hosting_checks,
         scanned_at: new Date().toISOString(),
+        ...platformAudits,
       };
 
       setScan(s);
@@ -408,6 +415,50 @@ export default function HomePage() {
     }
   }
 
+  async function downloadPlatformZip(platform: "META" | "DISCORD" | "TIKTOK" | "LINKEDIN" | "TELEGRAM" | "YOUTUBE") {
+    if (!file) {
+      setErr("Please upload a WebGL.zip first.");
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+
+    // Gate usage (optional - we can keep it free or gated. Let's use the same gate as before)
+    const gate = await fetch("/api/fixpacks/use", { method: "POST" });
+    if (!gate.ok) {
+      setErr("You’ve used all free Fix Pack deployments. Subscribe to continue.");
+      setBusy(false);
+      return;
+    }
+
+    try {
+      const ab = await file.arrayBuffer();
+      const srcZip = await JSZip.loadAsync(ab);
+      const { prefix } = findUnityRootPrefix(Object.keys(srcZip.files));
+
+      const success = await applyPlatformPatchBrowser(platform, srcZip, prefix || "");
+      if (!success) throw new Error("Could not apply platform patch. index.html not found.");
+
+      const blob = await srcZip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+
+      const gameSlug = slugify(projectName);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${gameSlug}_${platform.toLowerCase()}_certified.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      await refreshMe();
+    } catch (e: any) {
+      console.error("Platform patch failed:", e);
+      setErr(e?.message || "Failed to inject Platform SDKs");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function copyToClipboard(text: string) {
     await navigator.clipboard.writeText(text);
   }
@@ -511,10 +562,10 @@ export default function HomePage() {
             </a>
 
             {(reportUrl || certId) && (
-  <a href={reportUrl || `/report/${certId}`} style={linkBtn}>
-    Open Certification Report →
-  </a>
-)}
+              <a href={reportUrl || `/report/${certId}`} style={linkBtn}>
+                Open Certification Report →
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -582,6 +633,45 @@ export default function HomePage() {
             <Kpi label="Brotli" value={scan.compression?.brotli_present ? "Yes" : "No"} />
             <Kpi label="Gzip" value={scan.compression?.gzip_present ? "Yes" : "No"} />
             <Kpi label="Memory (detected)" value={humanMem || "Not found"} />
+          </div>
+
+          <div style={{ marginTop: 20, padding: 16, border: "1px solid #111", borderRadius: 14, background: "#1a1a1a", color: "#fff" }}>
+            <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 16 }}>Platform Migration FixPacks (SDK Injectors)</div>
+            <div style={{ fontSize: 13, marginBottom: 16, opacity: 0.85 }}>
+              Automatically inject the required SDK bridges, compliance policies, and zero-PII firewalls natively into your WebGL build for immediate distribution.
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {(scan as any).meta && (
+                <button onClick={() => downloadPlatformZip("META")} style={{ ...primaryBtn, background: "#1877f2", borderColor: "#1877f2" }} type="button">
+                  🔧 Apply Meta Patch
+                </button>
+              )}
+              {(scan as any).discord && (
+                <button onClick={() => downloadPlatformZip("DISCORD")} style={{ ...primaryBtn, background: "#5865F2", borderColor: "#5865F2" }} type="button">
+                  🔧 Apply Discord Patch
+                </button>
+              )}
+              {(scan as any).tiktok && (
+                <button onClick={() => downloadPlatformZip("TIKTOK")} style={{ ...primaryBtn, background: "#ff0050", borderColor: "#ff0050" }} type="button">
+                  🔧 Apply TikTok Patch
+                </button>
+              )}
+              {(scan as any).linkedin && (
+                <button onClick={() => downloadPlatformZip("LINKEDIN")} style={{ ...primaryBtn, background: "#0a66c2", borderColor: "#0a66c2" }} type="button">
+                  🔧 Apply LinkedIn Security
+                </button>
+              )}
+              {(scan as any).telegram && (
+                <button onClick={() => downloadPlatformZip("TELEGRAM")} style={{ ...primaryBtn, background: "#229ED9", borderColor: "#229ED9" }} type="button">
+                  🔧 Apply Telegram Bridge
+                </button>
+              )}
+              {(scan as any).youtube && (
+                <button onClick={() => downloadPlatformZip("YOUTUBE")} style={{ ...primaryBtn, background: "#FF0000", borderColor: "#FF0000" }} type="button">
+                  🔧 Apply YouTube Hooks
+                </button>
+              )}
+            </div>
           </div>
 
           <details style={{ marginTop: 16 }}>

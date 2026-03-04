@@ -377,10 +377,9 @@ export default function ReportClient({
       </div>
 
       <div style={{ marginTop: 16, padding: 16, borderRadius: 14, border: "1px solid #eee", background: "#fff" }}>
-        <div style={{ fontWeight: 900, marginBottom: 6 }}>1) Download FixPack ZIP (Repo-Ready)</div>
+        <div style={{ fontWeight: 900, marginBottom: 6 }}>1) Apply Platform FixPacks</div>
         <div style={{ opacity: 0.8, fontSize: 13 }}>
-          We removed the second ZIP upload here because large WebGL ZIPs can trigger <b>413</b> on hosted patch endpoints.
-          Download the FixPack from the home page (it is generated locally in your browser).
+          Platform SDK injections (Meta, TikTok, Telegram) and Hosting fixes (Vercel, Netlify) are generated seamlessly inside your browser on the Upload Dashboard to eliminate server size constraints.
         </div>
 
         <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -397,7 +396,7 @@ export default function ReportClient({
             }}
             type="button"
           >
-            Go to Download FixPack →
+            🔙 Return to Dashboard
           </button>
         </div>
 
