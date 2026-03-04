@@ -403,11 +403,17 @@ export default function ReportClient({
         </div>
 
         {/* Next Step Section */}
-        <div style={{ marginTop: 24, padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #86efac", color: "#166534" }}>
-          <div style={{ fontWeight: 900, marginBottom: 8 }}>✅ Next Step: Bring Your Game Online</div>
-          <div style={{ fontSize: 13, marginBottom: 12, lineHeight: 1.5 }}>
-            To generate your official certificate in Step 2 below, you need a Live URL. Drag and drop the <b>FixPack .zip</b> you just downloaded directly into Netlify Drop to get your live link instantly.
+        <div style={{ marginTop: 24, padding: 14, borderRadius: 12, background: "#f8fafc", border: "1px solid #e2e8f0", color: "#334155" }}>
+          <div style={{ fontWeight: 900, marginBottom: 8 }}>✅ Next Steps: Staging vs Certification</div>
+
+          <div style={{ fontSize: 13, marginBottom: 10, lineHeight: 1.6 }}>
+            <b>Phase 1 (Diagnostic):</b> To show your client the game works and the <span style={{ fontFamily: "monospace", fontSize: 11 }}>HUD Diagnosis</span>, download a <b>Repo-Ready FixPack</b> (Netlify selected) from the Dashboard. Drag and drop it into Netlify Drop to generate a staging <code>netlify.app</code> link to send them.
           </div>
+
+          <div style={{ fontSize: 13, marginBottom: 12, lineHeight: 1.6 }}>
+            <b>Phase 2 (Certification):</b> Once they give you Developer access, deploy the <b>Platform Certified .zip</b> (Meta, TikTok, Telegram) directly into their platform console. Paste that final <code>Live Platform URL</code> below to issue the official compliance certificate.
+          </div>
+
           <a
             href="https://app.netlify.com/drop"
             target="_blank"
@@ -423,7 +429,7 @@ export default function ReportClient({
               fontSize: 14
             }}
           >
-            Deploy on Netlify Drop ↗
+            Launch Diagnostic on Netlify Drop ↗
           </a>
         </div>
 
