@@ -387,22 +387,34 @@ export default function HomePage() {
 
           // Build dynamic HUD based on scan
           const alerts = [];
-          if ((scan as any).meta?.criticalFailures?.length > 0) alerts.push("⚠️ META COMPLIANCE: FAIL");
-          if ((scan as any).discord?.criticalFailures?.length > 0) alerts.push("⚠️ DISCORD SCOPES: FAIL");
-          if ((scan as any).tiktok?.criticalFailures?.length > 0) alerts.push("⚠️ TIKTOK UX: FAIL");
-          if ((scan as any).telegram?.criticalFailures?.length > 0) alerts.push("⚠️ TELEGRAM SDK: MISSING");
-          if ((scan as any).linkedin?.criticalFailures?.length > 0) alerts.push("⚠️ LINKEDIN: PRIVACY LEAK");
-          if ((scan as any).youtube?.criticalFailures?.length > 0) alerts.push("⚠️ YOUTUBE: RULES VIOLATED");
+          if ((scan as any).meta?.criticalFailures?.length > 0) {
+            alerts.push("<b style='color:#ff5555'>⚠️ META (FACEBOOK) AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Legacy FB.api() Scopes Detected<br/>- 3rd-Party Cookie Firewall Violated<br/>- Missing v8.0 SDK Handshake Bridge<br/><br/><i>Result: App will be suspended from Facebook Gaming. Requires SDK Injection.</i></span><br/>");
+          }
+          if ((scan as any).discord?.criticalFailures?.length > 0) {
+            alerts.push("<b style='color:#ff5555'>⚠️ DISCORD AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Legacy Permissions (MANAGE_GUILD) Detected<br/>- Activities SDK Missing/Outdated<br/>- Iframe Sandboxing Violations<br/><br/><i>Result: App will fail Discord Activity review. Requires SDK Injection.</i></span><br/>");
+          }
+          if ((scan as any).tiktok?.criticalFailures?.length > 0) {
+            alerts.push("<b style='color:#ff5555'>⚠️ TIKTOK AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Swipe-To-Exit Conflicts Detected<br/>- Safe-Area Viewport Violations<br/>- Touch-Event Suppression Missing<br/><br/><i>Result: App will be rejected from TikTok Canvas. Requires SDK Injection.</i></span><br/>");
+          }
+          if ((scan as any).telegram?.criticalFailures?.length > 0) {
+            alerts.push("<b style='color:#ff5555'>⚠️ TELEGRAM AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- WebApp Bridge SDK Missing<br/>- External Link Routing Vulnerable<br/>- Fullscreen Expansion Locked<br/><br/><i>Result: App will break inside Telegram Mini App wrapper. Requires SDK Injection.</i></span><br/>");
+          }
+          if ((scan as any).linkedin?.criticalFailures?.length > 0) {
+            alerts.push("<b style='color:#ff5555'>⚠️ LINKEDIN AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Unconsented Tracking Pixels Detected<br/>- B2B Privacy Firewall Violated<br/>- Zero-PII Constraints Failed<br/><br/><i>Result: App will be blocked by Enterprise networks. Requires SDK Injection.</i></span><br/>");
+          }
+          if ((scan as any).youtube?.criticalFailures?.length > 0) {
+            alerts.push("<b style='color:#ff5555'>⚠️ YOUTUBE AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Playables Memory Constraints Violated<br/>- Initial Bundle Size Limits Exceeded<br/>- Strict Asset Pathing Rules Broken<br/><br/><i>Result: App will crash inside YouTube Playables. Requires SDK Injection.</i></span><br/>");
+          }
 
-          const hudTitle = alerts.length > 0 ? alerts.join("<br/>") : "✅ BUILD COMPLIANT";
+          const hudTitle = alerts.length > 0 ? alerts.join("<br/><br/>") : "✅ BUILD COMPLIANT & CERTIFIED";
           const color = alerts.length > 0 ? "#ff0000" : "#00ff00";
 
           const hudScript = `
 <script>
 (function() {
     const overlay = document.createElement('div');
-    overlay.style = "position:fixed;top:0;right:0;width:250px;height:100vh;background:rgba(0,0,0,0.9);color:${color};z-index:9999;padding:15px;font-family:monospace;border-left:2px solid ${color};pointer-events:none;overflow-y:auto;";
-    overlay.innerHTML = "<b style='font-size:14px;color:#fff;'>HUD DIAGNOSIS</b><hr style='border-color:#333;'/>${hudTitle}";
+    overlay.style = "position:fixed;top:0;right:0;width:320px;height:100vh;background:rgba(0,0,0,0.95);color:${color};z-index:999999;padding:20px;font-family:monospace;border-left:4px solid ${color};pointer-events:none;overflow-y:auto;box-sizing:border-box;box-shadow:-5px 0 25px rgba(0,0,0,0.8);";
+    overlay.innerHTML = "<b style='font-size:16px;color:#fff;'>HUD DIAGNOSIS</b><hr style='border-color:#444;margin:15px 0;'/>${hudTitle}";
     document.body.appendChild(overlay);
 })();
 </script>
@@ -640,12 +652,12 @@ export default function HomePage() {
                   </select>
                 </div>
 
-                <button onClick={() => downloadFixPackZip("repo-ready")} disabled={busy} style={primaryBtn} type="button">
-                  🚀 Download FixPack (Repo-Ready)
+                <button onClick={() => downloadFixPackZip("repo-ready")} disabled={busy} style={{ ...primaryBtn, background: "#dc2626", borderColor: "#b91c1c" }} type="button">
+                  🚨 Download Diagnostic Build (for Netlify)
                 </button>
 
                 <button onClick={() => downloadFixPackZip("handover")} disabled={busy} style={primaryBtn} type="button">
-                  📦 Download FixPack (Client Handover)
+                  📦 Download Diagnostic Build (Send to Client)
                 </button>
 
                 {isFreeLimitReached && (
@@ -675,10 +687,13 @@ export default function HomePage() {
             <div style={{ fontSize: 13, marginBottom: 16, opacity: 0.85 }}>
               Automatically inject the required SDK bridges, compliance policies, and zero-PII firewalls natively into your WebGL build for immediate distribution.
             </div>
+            <div style={{ fontSize: 13, marginBottom: 16, opacity: 0.85, background: "#333", padding: "10px 14px", borderRadius: 8, borderLeft: "3px solid #00ff00" }}>
+              <b>Step 2 (Phase 2):</b> After showing the client the HUD above, apply the final Certified Patches below. These instantly fix all vulnerabilities above. <b>They do NOT contain the red HUD overlay.</b>
+            </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
               {(scan as any).meta && (
                 <button onClick={() => downloadPlatformZip("META")} style={{ ...primaryBtn, background: "#1877f2", borderColor: "#1877f2" }} type="button">
-                  🔧 Apply Meta Patch
+                  🔧 Apply Meta Patch <span style={{ fontSize: 11, opacity: 0.8 }}>(Final Clean Build)</span>
                 </button>
               )}
               {(scan as any).discord && (
