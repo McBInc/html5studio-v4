@@ -382,8 +382,43 @@ export default function HomePage() {
         const allowed = low === "index.html" || low.startsWith("build/") || low.startsWith("templatedata/");
         if (!allowed) continue;
 
-        const data = await srcZip.file(f.name)!.async("arraybuffer");
-        siteRoot.file(relative, data);
+        if (low === "index.html") {
+          let html = await srcZip.file(f.name)!.async("string");
+
+          // Build dynamic HUD based on scan
+          const alerts = [];
+          if ((scan as any).meta?.criticalFailures?.length > 0) alerts.push("⚠️ META COMPLIANCE: FAIL");
+          if ((scan as any).discord?.criticalFailures?.length > 0) alerts.push("⚠️ DISCORD SCOPES: FAIL");
+          if ((scan as any).tiktok?.criticalFailures?.length > 0) alerts.push("⚠️ TIKTOK UX: FAIL");
+          if ((scan as any).telegram?.criticalFailures?.length > 0) alerts.push("⚠️ TELEGRAM SDK: MISSING");
+          if ((scan as any).linkedin?.criticalFailures?.length > 0) alerts.push("⚠️ LINKEDIN: PRIVACY LEAK");
+          if ((scan as any).youtube?.criticalFailures?.length > 0) alerts.push("⚠️ YOUTUBE: RULES VIOLATED");
+
+          const hudTitle = alerts.length > 0 ? alerts.join("<br/>") : "✅ BUILD COMPLIANT";
+          const color = alerts.length > 0 ? "#ff0000" : "#00ff00";
+
+          const hudScript = `
+<script>
+(function() {
+    const overlay = document.createElement('div');
+    overlay.style = "position:fixed;top:0;right:0;width:250px;height:100vh;background:rgba(0,0,0,0.9);color:${color};z-index:9999;padding:15px;font-family:monospace;border-left:2px solid ${color};pointer-events:none;overflow-y:auto;";
+    overlay.innerHTML = "<b style='font-size:14px;color:#fff;'>HUD DIAGNOSIS</b><hr style='border-color:#333;'/>${hudTitle}<hr style='border-color:#333;'><div id='h5s-logs' style='font-size:11px;opacity:0.8;word-break:break-all;'>Waiting for logs...</div>";
+    document.body.appendChild(overlay);
+})();
+</script>
+`;
+          if (!html.includes("HUD DIAGNOSIS")) {
+            if (html.toLowerCase().includes("</body>")) {
+              html = html.replace(/<\/body>/i, `${hudScript}\n</body>`);
+            } else {
+              html += hudScript;
+            }
+          }
+          siteRoot.file(relative, html);
+        } else {
+          const data = await srcZip.file(f.name)!.async("arraybuffer");
+          siteRoot.file(relative, data);
+        }
       }
 
       if (targetHost === "vercel") siteRoot.file("vercel.json", pack.vercelJson);
