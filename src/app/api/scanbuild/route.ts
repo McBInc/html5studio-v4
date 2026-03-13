@@ -392,19 +392,51 @@ async function injectUniversalInitIntoZip(
   };
 }
 
+export async function OPTIONS(req: NextRequest) {
+  const origin = req.headers.get("origin") || "*";
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, x-filename",
+      "Access-Control-Allow-Credentials": "true",
+    },
+  });
+}
+
 export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin") || "*";
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, x-filename",
+    "Access-Control-Allow-Credentials": "true",
+  };
+
   try {
     // ---------- AUTH ----------
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });
+    const sessionEmail = session?.user?.email;
+    
+    // Fallback to admin for unauthenticated landing page scans
+    const isFallback = !sessionEmail;
+    const email: string = sessionEmail || process.env.ADMIN_EMAIL || "mikmcb@gmail.com";
+
+    let user = await prisma.user.findUnique({ where: { email } });
+    
+    // Auto-provision fallback user if missing
+    if (!user && isFallback) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: "Studio Analytics",
+        },
+      });
     }
 
-    const email = session.user.email;
-
-    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404, headers: corsHeaders });
     }
 
     // ---------- INPUT ----------
@@ -571,12 +603,14 @@ const platformTarget = (() => {
 
       // direct injection telemetry for quick verification
       inject,
+    }, {
+      headers: corsHeaders
     });
   } catch (err: any) {
     const msg = err?.message || "Scan failed";
     console.error("SCAN ERROR", err);
 
     const isUnsupported = msg.toLowerCase().includes("unsupported content-type");
-    return NextResponse.json({ ok: false, error: msg }, { status: isUnsupported ? 415 : 500 });
+    return NextResponse.json({ ok: false, error: msg }, { status: isUnsupported ? 415 : 500, headers: corsHeaders });
   }
 }
