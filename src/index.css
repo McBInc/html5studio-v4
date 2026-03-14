@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Mono&display=swap');
+
+body { margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+.animate-marquee {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 50s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.hover-card:hover {
+  transform: translateY(-8px);
+  border-color: #A855F7 !important;
+  background: rgba(168, 85, 247, 0.05) !important;
+}
+
+/* Custom Scrollbar for Industrial Feel */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #09090B; }
+::-webkit-scrollbar-thumb { background: #1E1B4B; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #A855F7; }
