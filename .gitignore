@@ -41,3 +41,11 @@ next-env.d.ts
 !WebGL_Build.zip
 !boomers-global-quest_netlify_repo-ready.zip
 mega-test-out.json
+*.pdf
+*.xlsx
+*.docx
+*.txt
+*.log
+*.tmp
+*.bak
+*.csv

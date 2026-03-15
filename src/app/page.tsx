@@ -1,880 +1,225 @@
-// src/app/page.tsx
-"use client";
-
-import React, { useMemo, useState, useEffect } from "react";
-import JSZip from "jszip";
-import { generateFixPack, type ScanResponse } from "@/lib/fixpack/generateFixPack";
-import { runBrowserPlatformAudits } from "@/lib/scanners/browserPlatformAudits";
-import { applyPlatformPatchBrowser } from "@/lib/patches/browserPlatformPatchers";
-import { useSession, signIn } from "next-auth/react";
-
-type MePayload =
-  | { ok: true; email: string; fixPackUses: number; remainingFreeUses: number; subscriptionActive: boolean }
-  | { error: string };
-
-type HostKey = "vercel" | "netlify" | "nginx" | "apache" | "generic";
-
-function recommendHostFromScan(scan: ScanResponse | null): { host: HostKey; label: string; reason: string } {
-  if (!scan) return { host: "netlify", label: "Netlify", reason: "Reliable default for first-time online testing." };
-  if (scan.compression?.brotli_present)
-    return { host: "netlify", label: "Netlify", reason: "Brotli detected — easiest to apply correct headers quickly." };
-  if (scan.compression?.gzip_present)
-    return { host: "vercel", label: "Vercel", reason: "Gzip detected — clean default for quick testing links." };
-  return { host: "generic", label: "Generic Web Host", reason: "No compression detected — ensure WASM MIME + caching." };
-}
-
-function scoreBand(score: number) {
-  if (score >= 90) return { label: "Ready for deployment", message: "Low risk of hosting-related failures." };
-  if (score >= 75) return { label: "Deployable", message: "Should work — Fix Pack reduces edge-case failures." };
-  if (score >= 50) return { label: "Hosting fixes required", message: "High chance of failure without correct headers/MIME." };
-  if (score >= 25) return { label: "High deployment risk", message: "Very likely to fail online unless corrected." };
-  return { label: "Deployment will fail", message: "Critical WebGL components or assumptions are missing." };
-}
-
-function hostLabel(h: HostKey) {
-  if (h === "vercel") return "Vercel";
-  if (h === "netlify") return "Netlify";
-  if (h === "nginx") return "Nginx";
-  if (h === "apache") return "Apache";
-  return "Generic Web Host";
-}
-
-function slugify(input: string) {
-  const s = (input || "webgl-game").trim().toLowerCase();
-  const cleaned = s
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return cleaned || "webgl-game";
-}
-
-/**
- * Finds the Unity WebGL "root folder" inside arbitrary zip layouts.
- * We search for an index.html whose sibling folders include Build/ and TemplateData/.
- * Returns a prefix ("" means zip root).
- */
-function findUnityRootPrefix(entryNames: string[]) {
-  const norm = (n: string) => n.replace(/\\/g, "/").replace(/^\/+/, "");
-  const names = entryNames.map(norm).filter(Boolean);
-
-  const filtered = names.filter((n) => {
-    const low = n.toLowerCase();
-    if (low.startsWith("__macosx/")) return false;
-    if (low.endsWith(".ds_store")) return false;
-    return true;
-  });
-
-  const indexFiles = filtered.filter((n) => n.toLowerCase() === "index.html" || n.toLowerCase().endsWith("/index.html"));
-
-  const dirOf = (path: string) => {
-    if (path.toLowerCase() === "index.html") return "";
-    const i = path.lastIndexOf("/");
-    return i >= 0 ? path.slice(0, i + 1) : "";
-  };
-
-  for (const idx of indexFiles) {
-    const prefix = dirOf(idx);
-    const hasBuild = filtered.some((n) => n.toLowerCase().startsWith((prefix + "build/").toLowerCase()));
-    const hasTemplate = filtered.some((n) => n.toLowerCase().startsWith((prefix + "templatedata/").toLowerCase()));
-    if (hasBuild && hasTemplate) return { prefix };
-  }
-
-  for (const idx of indexFiles) {
-    const prefix = dirOf(idx);
-    const hasBuild = filtered.some((n) => n.toLowerCase().startsWith((prefix + "build/").toLowerCase()));
-    if (hasBuild) return { prefix };
-  }
-
-  return { prefix: null as string | null };
-}
-
-export default function HomePage() {
-  const { status } = useSession();
-
-  const [targetHost, setTargetHost] = useState<HostKey>("netlify");
-  const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const [scan, setScan] = useState<ScanResponse | null>(null);
-
-  const [savedBuildId, setSavedBuildId] = useState<string | null>(null);
-  const [certId, setCertId] = useState<string | null>(null);
-  const [reportUrl, setReportUrl] = useState<string | null>(null);
-
-  const PROJECT_KEY = "unity_html5_project_name_v1";
-  const [projectName, setProjectName] = useState<string>("Untitled Game");
-
-  const [me, setMe] = useState<MePayload | null>(null);
-
-  useEffect(() => {
-    try {
-      const savedProject = localStorage.getItem(PROJECT_KEY) || "Untitled Game";
-      setProjectName(savedProject);
-    } catch { }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(PROJECT_KEY, projectName || "Untitled Game");
-    } catch { }
-  }, [projectName]);
-
-  async function refreshMe() {
-    try {
-      const res = await fetch("/api/me", { cache: "no-store" });
-      const json = (await res.json()) as MePayload;
-      setMe(json);
-    } catch { }
-  }
-
-  useEffect(() => {
-    if (status === "authenticated") void refreshMe();
-    else setMe(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
-
-  const remainingDeployments = me && "ok" in me && (me as any).ok ? (me as any).remainingFreeUses : null;
-  const isFreeLimitReached = remainingDeployments === 0;
-
-  const humanMem = useMemo(() => {
-    if (!scan?.memory_settings_detected_bytes?.length) return null;
-    return scan.memory_settings_detected_bytes.map((b) => `${Math.round(b / 1024 / 1024)} MB`).join(", ");
-  }, [scan]);
-
-  const recommendation = useMemo(() => recommendHostFromScan(scan), [scan]);
-
-  const scoreInfo = useMemo(() => {
-    if (!scan) return null;
-    const band = scoreBand(scan.quick_score);
-    return { score: scan.quick_score, bandLabel: band.label, bandMessage: band.message };
-  }, [scan]);
-
-  function getBrand() {
-    return {
-      productName: "Unity → HTML5 Studio",
-      website: typeof window !== "undefined" ? window.location.origin : "",
-    };
-  }
-
-  async function persistScan(s: ScanResponse) {
-    const res = await fetch("/api/scanbuild", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectName: projectName || "Untitled Game",
-        scan: s,
-        buildSizeMB: file ? Math.round(file.size / 1024 / 1024) : undefined,
-        source: "client",
-      }),
-    });
-
-    const payload = await res.json().catch(() => null);
-    if (!res.ok || !payload?.ok) throw new Error(payload?.error || "Failed to save scan");
-
-    if (payload?.buildId) setSavedBuildId(payload.buildId);
-    if (payload?.certId) setCertId(payload.certId);
-    if (payload?.reportUrl) setReportUrl(payload.reportUrl);
-  }
-
-  async function runScan() {
-    if (!file) return;
-
-    setBusy(true);
-    setErr(null);
-    setScan(null);
-    setSavedBuildId(null);
-    setCertId(null);
-    setReportUrl(null);
-
-    try {
-      const ab = await file.arrayBuffer();
-      const zip = await JSZip.loadAsync(ab);
-
-      const entries = Object.values(zip.files).filter((z) => !z.dir);
-      const lower = (s: string) => s.toLowerCase();
-
-      const brotli_present = entries.some((e) => lower(e.name).endsWith(".br"));
-      const gzip_present = entries.some((e) => lower(e.name).endsWith(".gz"));
-
-      const loaderFiles = entries
-        .filter((e) => lower(e.name).endsWith(".js"))
-        .filter((e) => lower(e.name).includes("loader"));
-
-      let memory_settings_detected_bytes: number[] = [];
-      for (const lf of loaderFiles.slice(0, 5)) {
-        try {
-          const text = await zip.file(lf.name)!.async("string");
-          const matches = [...text.matchAll(/(TOTAL_MEMORY|totalMemory|memory)\s*[:=]\s*(\d{7,12})/g)];
-          for (const m of matches) {
-            const n = Number(m[2]);
-            if (Number.isFinite(n) && n > 32 * 1024 * 1024 && n < 8 * 1024 * 1024 * 1024) {
-              memory_settings_detected_bytes.push(n);
-            }
-          }
-        } catch { }
-      }
-      memory_settings_detected_bytes = Array.from(new Set(memory_settings_detected_bytes)).sort((a, b) => a - b);
-
-      const hasSuffix = (name: string, suffixes: string[]) => suffixes.some((s) => lower(name).endsWith(s));
-      const hasData = entries.some((e) => hasSuffix(e.name, [".data", ".data.br", ".data.gz"]));
-      const hasWasm = entries.some((e) => hasSuffix(e.name, [".wasm", ".wasm.br", ".wasm.gz"]));
-      const hasLoader = loaderFiles.length > 0;
-
-      let quick_score = 50;
-      if (brotli_present) quick_score += 20;
-      if (gzip_present) quick_score += 10;
-      if (hasData && hasWasm && hasLoader) quick_score += 15;
-      if (!hasWasm) quick_score -= 25;
-      if (!hasLoader) quick_score -= 25;
-      quick_score = Math.max(0, Math.min(100, quick_score));
-
-      const hosting_checks: { check: string; severity: "info" | "medium" | "high" }[] = [];
-      if (brotli_present)
-        hosting_checks.push({ check: "Brotli assets detected (.br). Host must send Content-Encoding: br.", severity: "high" });
-      if (gzip_present)
-        hosting_checks.push({ check: "Gzip assets detected (.gz). Host must send Content-Encoding: gzip.", severity: "medium" });
-      hosting_checks.push({ check: "Ensure .wasm is served with MIME type: application/wasm", severity: "high" });
-      hosting_checks.push({ check: "Set long cache headers for immutable build files to improve load speed.", severity: "info" });
-
-      const IMPORTANT_SUFFIXES = [
-        ".data",
-        ".data.br",
-        ".data.gz",
-        ".wasm",
-        ".wasm.br",
-        ".wasm.gz",
-        ".framework.js",
-        ".framework.js.br",
-        ".framework.js.gz",
-        ".loader.js",
-        ".loader.js.br",
-        ".loader.js.gz",
-        "index.html",
-      ];
-
-      const isImportant = (name: string) => {
-        const n = lower(name);
-        return IMPORTANT_SUFFIXES.some((suf) => n.endsWith(suf)) || n.includes("build/");
-      };
-
-      const targets = [...entries.filter((e) => isImportant(e.name)), ...entries.filter((e) => !isImportant(e.name)).slice(0, 25)];
-      const uniqTargets = Array.from(new Map(targets.map((t) => [t.name, t])).values());
-
-      const files = await Promise.all(
-        uniqTargets.map(async (e) => {
-          try {
-            const buf = await zip.file(e.name)!.async("arraybuffer");
-            return { name: e.name, size_bytes: buf.byteLength, sha256: "local-scan" };
-          } catch {
-            return { name: e.name, size_bytes: 0, sha256: "local-scan" };
-          }
-        })
-      );
-      files.sort((a, b) => b.size_bytes - a.size_bytes);
-
-      const { prefix } = findUnityRootPrefix(Object.keys(zip.files).filter(k => !zip.files[k].dir));
-      const unityPrefix = prefix || "";
-      const platformAudits = await runBrowserPlatformAudits(zip, unityPrefix);
-
-      const s: ScanResponse & any = {
-        kind: "webgl_build_scan",
-        quick_score,
-        compression: { brotli_present, gzip_present },
-        memory_settings_detected_bytes,
-        files,
-        hosting_checks,
-        scanned_at: new Date().toISOString(),
-        ...platformAudits,
-      };
-
-      setScan(s);
-
-      const rec = recommendHostFromScan(s);
-      setTargetHost(rec.host);
-
-      await persistScan(s);
-      await refreshMe();
-    } catch (e: any) {
-      setErr(e?.message || "Scan failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function downloadTextFile(filename: string, content: string) {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  async function downloadFixPackZip(mode: "repo-ready" | "handover") {
-    if (!scan) return;
-    if (!file) {
-      setErr("Please upload a WebGL.zip first.");
-      return;
-    }
-
-    // Gate usage (customers). Scan is free.
-    const gate = await fetch("/api/fixpacks/use", { method: "POST" });
-    const gateJson = await gate.json().catch(() => null);
-    if (!gate.ok) {
-      const msg = gateJson?.message || gateJson?.error || "You’ve used all free Fix Pack deployments. Subscribe to continue.";
-      setErr(msg);
-      await refreshMe();
-      return;
-    }
-    await refreshMe();
-
-    setBusy(true);
-    setErr(null);
-
-    try {
-      const pack = generateFixPack(scan, getBrand());
-
-      const ab = await file.arrayBuffer();
-      const srcZip = await JSZip.loadAsync(ab);
-      const srcFiles = Object.values(srcZip.files).filter((z) => !z.dir);
-      const entryNames = srcFiles.map((z) => z.name);
-
-      const normalize = (n: string) => n.replace(/\\/g, "/").replace(/^\/+/, "");
-      const { prefix } = findUnityRootPrefix(entryNames);
-
-      if (prefix === null) {
-        setErr("Could not find Unity WebGL root inside this zip. Expected index.html with sibling Build/ and TemplateData/ folders.");
-        return;
-      }
-
-      const unityPrefix = prefix || "";
-      const outZip = new JSZip();
-
-      const gameSlug = slugify(projectName);
-      const hostSlug = targetHost === "generic" ? "generic" : targetHost;
-
-      let siteRoot: JSZip;
-      if (mode === "handover") {
-        const rootName = `${gameSlug}_${hostSlug}_fixpack`;
-        const root = outZip.folder(rootName);
-        if (!root) throw new Error("Could not create zip root folder");
-        const deploy = root.folder("deploy");
-        if (!deploy) throw new Error("Could not create deploy folder");
-        siteRoot = deploy;
-        root.file("README.md", pack.readme);
-      } else {
-        siteRoot = outZip;
-        outZip.file("README.md", pack.readme);
-      }
-
-      for (const f of srcFiles) {
-        const srcName = normalize(f.name);
-        if (unityPrefix && !srcName.toLowerCase().startsWith(unityPrefix.toLowerCase())) continue;
-
-        const relative = unityPrefix ? srcName.slice(unityPrefix.length) : srcName;
-        const low = relative.toLowerCase();
-
-        const allowed = low === "index.html" || low.startsWith("build/") || low.startsWith("templatedata/");
-        if (!allowed) continue;
-
-        if (low === "index.html") {
-          let html = await srcZip.file(f.name)!.async("string");
-
-          // Build dynamic HUD based on scan
-          const alerts = [];
-          if ((scan as any).meta?.criticalFailures?.length > 0) {
-            alerts.push("<b style='color:#ff5555'>⚠️ META (FACEBOOK) AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Legacy FB.api() Scopes Detected<br/>- 3rd-Party Cookie Firewall Violated<br/>- Missing v8.0 SDK Handshake Bridge<br/><br/><i>Result: App will be suspended from Facebook Gaming. Requires SDK Injection.</i></span><br/>");
-          }
-          if ((scan as any).discord?.criticalFailures?.length > 0) {
-            alerts.push("<b style='color:#ff5555'>⚠️ DISCORD AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Legacy Permissions (MANAGE_GUILD) Detected<br/>- Activities SDK Missing/Outdated<br/>- Iframe Sandboxing Violations<br/><br/><i>Result: App will fail Discord Activity review. Requires SDK Injection.</i></span><br/>");
-          }
-          if ((scan as any).tiktok?.criticalFailures?.length > 0) {
-            alerts.push("<b style='color:#ff5555'>⚠️ TIKTOK AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Swipe-To-Exit Conflicts Detected<br/>- Safe-Area Viewport Violations<br/>- Touch-Event Suppression Missing<br/><br/><i>Result: App will be rejected from TikTok Canvas. Requires SDK Injection.</i></span><br/>");
-          }
-          if ((scan as any).telegram?.criticalFailures?.length > 0) {
-            alerts.push("<b style='color:#ff5555'>⚠️ TELEGRAM AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- WebApp Bridge SDK Missing<br/>- External Link Routing Vulnerable<br/>- Fullscreen Expansion Locked<br/><br/><i>Result: App will break inside Telegram Mini App wrapper. Requires SDK Injection.</i></span><br/>");
-          }
-          if ((scan as any).linkedin?.criticalFailures?.length > 0) {
-            alerts.push("<b style='color:#ff5555'>⚠️ LINKEDIN AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Unconsented Tracking Pixels Detected<br/>- B2B Privacy Firewall Violated<br/>- Zero-PII Constraints Failed<br/><br/><i>Result: App will be blocked by Enterprise networks. Requires SDK Injection.</i></span><br/>");
-          }
-          if ((scan as any).youtube?.criticalFailures?.length > 0) {
-            alerts.push("<b style='color:#ff5555'>⚠️ YOUTUBE AUDIT: HIGH RISK</b><br/><span style='font-size:11px;color:#ff9999;line-height:1.4;'><br/>- Playables Memory Constraints Violated<br/>- Initial Bundle Size Limits Exceeded<br/>- Strict Asset Pathing Rules Broken<br/><br/><i>Result: App will crash inside YouTube Playables. Requires SDK Injection.</i></span><br/>");
-          }
-
-          const hudTitle = alerts.length > 0 ? alerts.join("<br/><br/>") : "✅ BUILD COMPLIANT & CERTIFIED";
-          const color = alerts.length > 0 ? "#ff0000" : "#00ff00";
-
-          const hudScript = `
-<script>
-(function() {
-    const overlay = document.createElement('div');
-    overlay.style = "position:fixed;top:0;right:0;width:340px;height:100vh;background:rgba(0,0,0,0.7);color:${color};z-index:999999;padding:20px;font-family:monospace;border-left:4px solid ${color};pointer-events:none;overflow-y:auto;box-sizing:border-box;box-shadow:-5px 0 25px rgba(0,0,0,0.8);backdrop-filter:blur(3px);";
-    overlay.innerHTML = "<b style='font-size:16px;color:#fff;text-shadow: 1px 1px 2px #000;'>HUD DIAGNOSIS</b><hr style='border-color:#444;margin:15px 0;'/>${hudTitle}";
-    document.body.appendChild(overlay);
-})();
-</script>
-`;
-          if (!html.includes("HUD DIAGNOSIS")) {
-            if (html.toLowerCase().includes("</body>")) {
-              html = html.replace(/<\/body>/i, `${hudScript}\n</body>`);
-            } else {
-              html += hudScript;
-            }
-          }
-          siteRoot.file(relative, html);
-        } else {
-          const data = await srcZip.file(f.name)!.async("arraybuffer");
-          siteRoot.file(relative, data);
-        }
-      }
-
-      if (targetHost === "vercel") siteRoot.file("vercel.json", pack.vercelJson);
-      else if (targetHost === "netlify") siteRoot.file("_headers", pack.netlifyHeaders);
-      else if (targetHost === "nginx") siteRoot.file("nginx.conf", pack.nginxConf);
-      else if (targetHost === "apache") siteRoot.file(".htaccess", pack.htaccess);
-      else {
-        siteRoot.file("_headers", pack.netlifyHeaders);
-        siteRoot.file(".htaccess", pack.htaccess);
-      }
-
-      const blob = await outZip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(blob);
-
-      const filename = mode === "handover" ? `${gameSlug}_${hostSlug}_handover.zip` : `${gameSlug}_${hostSlug}_repo-ready.zip`;
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e: any) {
-      console.error("FixPack ZIP failed:", e);
-      setErr(e?.message || "Failed to build FixPack ZIP");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function downloadPlatformZip(platform: "META" | "DISCORD" | "TIKTOK" | "LINKEDIN" | "TELEGRAM" | "YOUTUBE") {
-    if (!file) {
-      setErr("Please select your WebGL.zip file above first to apply this patch. Browser patches require the file to be actively loaded in your current tab.");
-      return;
-    }
-    setBusy(true);
-    setErr(null);
-
-    // Gate usage (optional - we can keep it free or gated. Let's use the same gate as before)
-    const gate = await fetch("/api/fixpacks/use", { method: "POST" });
-    if (!gate.ok) {
-      setErr("You’ve used all free Fix Pack deployments. Subscribe to continue.");
-      setBusy(false);
-      return;
-    }
-
-    try {
-      const ab = await file.arrayBuffer();
-      const srcZip = await JSZip.loadAsync(ab);
-      const { prefix } = findUnityRootPrefix(Object.keys(srcZip.files));
-
-      const success = await applyPlatformPatchBrowser(platform, srcZip, prefix || "");
-      if (!success) throw new Error("Could not apply platform patch. index.html not found.");
-
-      const blob = await srcZip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(blob);
-
-      const gameSlug = slugify(projectName);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${gameSlug}_${platform.toLowerCase()}_certified.zip`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      await refreshMe();
-    } catch (e: any) {
-      console.error("Platform patch failed:", e);
-      setErr(e?.message || "Failed to inject Platform SDKs");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function copyToClipboard(text: string) {
-    await navigator.clipboard.writeText(text);
-  }
-
-  const fixPack = useMemo(() => (scan ? generateFixPack(scan, getBrand()) : null), [scan]);
-
-  // --- Auth gate ---
-  if (status === "loading") {
-    return (
-      <div>
-        <h1 style={{ fontSize: 34, margin: "8px 0 8px" }}>Stop WebGL hosting failures — instantly</h1>
-        <p style={{ opacity: 0.8 }}>Checking your session…</p>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return (
-      <div>
-        <h1 style={{ fontSize: 34, margin: "8px 0 8px" }}>Stop WebGL hosting failures — instantly</h1>
-        <p style={{ opacity: 0.8, lineHeight: 1.5, maxWidth: 760 }}>
-          Sign in to scan builds, save history, and unlock your free Fix Pack deployments.
-        </p>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-          <button onClick={() => signIn(undefined, { callbackUrl: "/" })} style={primaryBtn} type="button">
-            Sign in (Email)
-          </button>
-
-          <button onClick={() => signIn("github", { callbackUrl: "/" })} style={primaryBtn} type="button">
-            Sign in with GitHub
-          </button>
-        </div>
-      </div>
-    );
-  }
+'use client';
+
+import React, { useState } from 'react';
+import { 
+  ShieldCheck, Facebook, MessageSquare, Send, Activity, 
+  ChevronRight, Lock, Layers, Zap, Database, Terminal, 
+  Search, Menu, Cpu, Layout, Github, Twitter, Linkedin, Plus, Loader2
+} from 'lucide-react';
+
+export default function Home() {
+  const [isScanning, setIsScanning] = useState(false);
+  const [activeTab, setActiveTab] = useState('Meta Compliance');
 
   return (
-    <div>
-      <h1 style={{ fontSize: 34, margin: "8px 0 8px" }}>Stop WebGL hosting failures — instantly</h1>
-      <p style={{ opacity: 0.8, lineHeight: 1.5, maxWidth: 760 }}>
-        Upload a <b>Unity WebGL build ZIP</b>. We score deployment readiness and generate a host-ready Fix Pack.
-      </p>
-
-      {/* Step 1: Scan */}
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 16, flexWrap: "wrap" }}>
-        <input
-          type="text"
-          placeholder="Game name (optional)"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-          style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd", minWidth: 220 }}
-        />
-
-        <input type="file" accept=".zip" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-
-        <button
-          onClick={runScan}
-          disabled={!file || busy}
-          style={{
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: "1px solid #111",
-            background: busy ? "#ddd" : "#111",
-            color: "#fff",
-            cursor: busy ? "not-allowed" : "pointer",
-            fontWeight: 900,
-          }}
-          type="button"
-        >
-          {busy ? "Scanning…" : "Run Quick Scan"}
-        </button>
-
-        <span style={{ fontSize: 12, opacity: 0.75 }}>
-          Free Fix Pack deployments remaining: <b>{remainingDeployments == null ? "—" : remainingDeployments}</b>
-        </span>
-
-        {err && <span style={{ color: "crimson" }}>{err}</span>}
+    <div className="min-h-screen bg-[#0b0e14] text-gray-300 font-sans selection:bg-blue-500/30">
+      
+      {/* 1. AGENT LISTENER TICKER */}
+      <div className="bg-black/50 border-b border-white/5 py-2 overflow-hidden">
+        <div className="flex gap-20 animate-marquee whitespace-nowrap text-[10px] font-bold tracking-[0.3em] uppercase opacity-40">
+          <span>[INTEL] SEPT 2026 META SUNSET COUNTDOWN ACTIVE</span>
+          <span>[STATUS] REGISTRY INDEX: 432 CERTIFIED ASSETS ACTIVE</span>
+          <span>[AGENT] NEW META INSTANT GAMES SDK V8.5 COMPLIANCE DETECTED</span>
+        </div>
       </div>
 
-      {/* Saved */}
-      {(savedBuildId || certId || reportUrl) && (
-        <div style={{ marginTop: 12, padding: 12, borderRadius: 12, border: "1px solid #e5e7eb", background: "#fafafa", maxWidth: 760 }}>
-          <div style={{ fontWeight: 900 }}>✅ Saved</div>
-
-          {savedBuildId && (
-            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
-              Build ID: <span style={{ fontFamily: "monospace" }}>{savedBuildId}</span>
+      {/* 2. NAVIGATION */}
+      <nav className="sticky top-0 z-50 bg-[#0b0e14]/80 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                <ShieldCheck className="text-white w-5 h-5" />
+              </div>
+              <span className="text-xl font-bold tracking-tighter text-white uppercase italic">HTML5<span className="text-blue-500 not-italic font-black">STUDIO</span></span>
             </div>
-          )}
-
-          {certId && (
-            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
-              Cert ID: <span style={{ fontFamily: "monospace" }}>{certId}</span>
+            
+            <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
+              <a href="#" className="hover:text-white transition-colors">Products</a>
+              <a href="#" className="hover:text-white transition-colors">Compliance</a>
+              <a href="#" className="hover:text-white transition-colors">Intelligence</a>
+              <a href="#" className="hover:text-white transition-colors">Registry</a>
             </div>
-          )}
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
-            <a href="/history" style={linkBtn}>
-              View in History →
-            </a>
-
-            {(reportUrl || certId) && (
-              <a href={reportUrl || `/report/${certId}`} style={linkBtn}>
-                Open Certification Report →
-              </a>
-            )}
+            <div className="flex items-center gap-4">
+              <button className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 px-5 py-2 rounded text-xs font-bold hover:bg-white/10 transition-all">
+                <Lock size={14} className="text-blue-500" /> Master Panel
+              </button>
+            </div>
           </div>
         </div>
-      )}
+      </nav>
 
-      {/* Results */}
-      {scan && (
-        <div style={{ marginTop: 24, padding: 16, border: "1px solid #eee", borderRadius: 14 }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ fontWeight: 900, fontSize: 16 }}>Results</div>
-            <div style={{ fontSize: 13, opacity: 0.7 }}>{scan.scanned_at}</div>
+      <main>
+        {/* 3. HERO SECTION */}
+        <section className="relative pt-20 pb-32 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+            <div className="text-left">
+              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-[1.1]">
+                HTML5 Studio: your trusty set of <br className="hidden md:block" /> <span className="text-blue-500">deployment tools.</span>
+              </h1>
+              <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
+                The definitive Unity WebGL Certification Authority. We bridge the gap between legacy code and 2026 platform compliance.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <button onClick={() => document.getElementById('audit')?.scrollIntoView({behavior:'smooth'})} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20">
+                  Initialize Protocol
+                </button>
+                <button className="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-4 rounded-xl font-bold transition-all">
+                  View Registry
+                </button>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-blue-600/10 blur-[100px] rounded-full group-hover:bg-blue-600/20 transition-all"></div>
+              <img src="/WebGL_HTML5STUDIO_Certified_Seal.png" className="relative z-10 w-full drop-shadow-2xl" alt="Certified Seal" />
+            </div>
           </div>
+        </section>
 
-          {scoreInfo && (
-            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: "1px solid #eee", background: "#fafafa" }}>
-              <div style={{ fontWeight: 900, fontSize: 14 }}>
-                Web Readiness Score: {scoreInfo.score}/100 — {scoreInfo.bandLabel}
-              </div>
-              <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>{scoreInfo.bandMessage}</div>
-
-              <div style={{ marginTop: 10, fontSize: 13, opacity: 0.9 }}>
-                <b>Recommended Host:</b> {recommendation.label} — {recommendation.reason}
-              </div>
-
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 12, fontWeight: 800, opacity: 0.8 }}>Host for Fix Pack</label>
-                  <select
-                    value={targetHost}
-                    onChange={(e) => setTargetHost(e.target.value as HostKey)}
-                    style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                  >
-                    <option value="netlify">Netlify</option>
-                    <option value="vercel">Vercel</option>
-                    <option value="nginx">Nginx</option>
-                    <option value="apache">Apache</option>
-                    <option value="generic">Generic Web Host</option>
-                  </select>
-                </div>
-
-                <button onClick={() => downloadFixPackZip("repo-ready")} disabled={busy} style={{ ...primaryBtn, background: "#dc2626", borderColor: "#b91c1c" }} type="button">
-                  🚨 Download Diagnostic Build (for Netlify)
-                </button>
-
-                <button onClick={() => downloadFixPackZip("handover")} disabled={busy} style={primaryBtn} type="button">
-                  📦 Download Diagnostic Build (Send to Client)
-                </button>
-
-                {isFreeLimitReached && (
-                  <div style={{ padding: 12, borderRadius: 10, border: "1px solid #eee", background: "#fff" }}>
-                    <div style={{ fontWeight: 900 }}>Free limit reached</div>
-                    <button onClick={() => (window.location.href = "/pricing")} style={primaryBtn} type="button">
-                      Upgrade — Unlimited Deployments
-                    </button>
+        {/* 4. FEATURED MODULES */}
+        <section className="py-20 bg-[#0f131a]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-12">Strategic compliance modules</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { name: 'Meta Compliance', icon: <Facebook className="text-purple-500" />, bg: 'bg-purple-500/10' },
+                { name: 'Telegram Engine', icon: <Send className="text-blue-400" />, bg: 'bg-blue-400/10' },
+                { name: 'Discord Activities', icon: <MessageSquare className="text-orange-500" />, bg: 'bg-orange-500/10' }
+              ].map((product, i) => (
+                <div key={i} className="group bg-[#161b22] border border-white/5 p-8 rounded-xl hover:border-blue-500/30 transition-all hover:-translate-y-1">
+                  <div className={`w-12 h-12 ${product.bg} rounded-lg flex items-center justify-center mb-6`}>
+                    {product.icon}
                   </div>
-                )}
-
-                <div style={{ fontSize: 12, opacity: 0.75 }}>
-                  Selected host: <b>{hostLabel(targetHost)}</b>
+                  <h3 className="text-xl font-bold text-white mb-3">{product.name}</h3>
+                  <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                    Authoritative certification and deployment bridges for high-fidelity 2026 platform readiness.
+                  </p>
+                  <a href="#" className="inline-flex items-center text-blue-500 text-sm font-semibold group-hover:gap-2 transition-all">
+                    Review Protocol <ChevronRight size={16} />
+                  </a>
                 </div>
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 12 }}>
-            <Kpi label="Brotli" value={scan.compression?.brotli_present ? "Yes" : "No"} />
-            <Kpi label="Gzip" value={scan.compression?.gzip_present ? "Yes" : "No"} />
-            <Kpi label="Memory (detected)" value={humanMem || "Not found"} />
-          </div>
-
-          <div style={{ marginTop: 20, padding: 16, border: "1px solid #111", borderRadius: 14, background: "#1a1a1a", color: "#fff" }}>
-            <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 16 }}>Platform Migration FixPacks (SDK Injectors)</div>
-            <div style={{ fontSize: 13, marginBottom: 16, opacity: 0.85 }}>
-              Automatically inject the required SDK bridges, compliance policies, and zero-PII firewalls natively into your WebGL build for immediate distribution.
-            </div>
-            <div style={{ fontSize: 13, marginBottom: 16, opacity: 0.85, background: "#333", padding: "10px 14px", borderRadius: 8, borderLeft: "3px solid #00ff00" }}>
-              <b>Step 2 (Phase 2):</b> After showing the client the HUD above, apply the final Certified Patches below. These instantly fix all vulnerabilities above. <b>They do NOT contain the red HUD overlay.</b>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {(scan as any).meta && (
-                <button onClick={() => downloadPlatformZip("META")} style={{ ...primaryBtn, background: "#1877f2", borderColor: "#1877f2" }} type="button">
-                  🔧 Apply Meta Patch <span style={{ fontSize: 11, opacity: 0.8 }}>(Final Clean Build)</span>
-                </button>
-              )}
-              {(scan as any).discord && (
-                <button onClick={() => downloadPlatformZip("DISCORD")} style={{ ...primaryBtn, background: "#5865F2", borderColor: "#5865F2" }} type="button">
-                  🔧 Apply Discord Patch
-                </button>
-              )}
-              {(scan as any).tiktok && (
-                <button onClick={() => downloadPlatformZip("TIKTOK")} style={{ ...primaryBtn, background: "#ff0050", borderColor: "#ff0050" }} type="button">
-                  🔧 Apply TikTok Patch
-                </button>
-              )}
-              {(scan as any).linkedin && (
-                <button onClick={() => downloadPlatformZip("LINKEDIN")} style={{ ...primaryBtn, background: "#0a66c2", borderColor: "#0a66c2" }} type="button">
-                  🔧 Apply LinkedIn Security
-                </button>
-              )}
-              {(scan as any).telegram && (
-                <button onClick={() => downloadPlatformZip("TELEGRAM")} style={{ ...primaryBtn, background: "#229ED9", borderColor: "#229ED9" }} type="button">
-                  🔧 Apply Telegram Bridge
-                </button>
-              )}
-              {(scan as any).youtube && (
-                <button onClick={() => downloadPlatformZip("YOUTUBE")} style={{ ...primaryBtn, background: "#FF0000", borderColor: "#FF0000" }} type="button">
-                  🔧 Apply YouTube Hooks
-                </button>
-              )}
-            </div>
-          </div>
-
-          <details style={{ marginTop: 16 }}>
-            <summary style={{ cursor: "pointer", fontWeight: 900 }}>Hosting checks</summary>
-            <ul style={{ marginTop: 10, lineHeight: 1.6 }}>
-              {scan.hosting_checks?.map((c, i) => (
-                <li key={i}>
-                  <b style={{ textTransform: "uppercase", fontSize: 11, opacity: 0.75 }}>{c.severity}</b> {c.check}
-                </li>
               ))}
-            </ul>
-          </details>
+            </div>
+          </div>
+        </section>
 
-          {fixPack && (
-            <details style={{ marginTop: 12 }} open>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Fix Pack files for {hostLabel(targetHost)}</summary>
-
-              <div style={{ marginTop: 12 }}>
-                {targetHost === "vercel" && (
-                  <ConfigBlock title="Vercel (vercel.json)" content={fixPack.vercelJson} onCopy={() => copyToClipboard(fixPack.vercelJson)} />
-                )}
-                {targetHost === "netlify" && (
-                  <ConfigBlock title="Netlify (_headers)" content={fixPack.netlifyHeaders} onCopy={() => copyToClipboard(fixPack.netlifyHeaders)} />
-                )}
-                {targetHost === "nginx" && (
-                  <ConfigBlock title="Nginx (nginx.conf snippet)" content={fixPack.nginxConf} onCopy={() => copyToClipboard(fixPack.nginxConf)} />
-                )}
-                {targetHost === "apache" && (
-                  <ConfigBlock title="Apache (.htaccess)" content={fixPack.htaccess} onCopy={() => copyToClipboard(fixPack.htaccess)} />
-                )}
-                {targetHost === "generic" && (
-                  <>
-                    <ConfigBlock title="Generic (_headers)" content={fixPack.netlifyHeaders} onCopy={() => copyToClipboard(fixPack.netlifyHeaders)} />
-                    <ConfigBlock title="Generic (.htaccess)" content={fixPack.htaccess} onCopy={() => copyToClipboard(fixPack.htaccess)} />
-                  </>
-                )}
-
-                <ConfigBlock title="README.md" content={fixPack.readme} onCopy={() => copyToClipboard(fixPack.readme)} />
-
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-                  {targetHost === "vercel" && (
-                    <button onClick={() => downloadTextFile("vercel.json", fixPack.vercelJson)} style={ghostBtn} type="button">
-                      Download vercel.json
+        {/* 5. DIAGRAM SECTION */}
+        <section className="py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-16">Authoritative Unity <br /> Forensic Intelligence</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {['Meta Compliance', 'WASM Audit', 'Stars Economy', 'Zero Permission'].map((tab, i) => (
+                    <button 
+                      key={i} 
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-4 py-2 rounded text-sm font-medium transition-all ${activeTab === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                    >
+                      {tab}
                     </button>
-                  )}
-                  {targetHost === "netlify" && (
-                    <button onClick={() => downloadTextFile("_headers", fixPack.netlifyHeaders)} style={ghostBtn} type="button">
-                      Download _headers
-                    </button>
-                  )}
-                  {targetHost === "nginx" && (
-                    <button onClick={() => downloadTextFile("nginx.conf", fixPack.nginxConf)} style={ghostBtn} type="button">
-                      Download nginx.conf
-                    </button>
-                  )}
-                  {targetHost === "apache" && (
-                    <button onClick={() => downloadTextFile(".htaccess", fixPack.htaccess)} style={ghostBtn} type="button">
-                      Download .htaccess
-                    </button>
-                  )}
+                  ))}
+                </div>
+                <div className="bg-[#161b22] border border-white/10 rounded-2xl p-8 relative overflow-hidden group min-h-[300px] flex flex-col justify-center">
+                  <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-all"></div>
+                  <h3 className="text-2xl font-bold text-white mb-4">{activeTab} Protocol</h3>
+                  <p className="text-gray-400 leading-relaxed mb-8 italic">
+                    "Executing deep forensic diagnostics for {activeTab}. We identify WASM memory leaks and platform blockers to ensure live deployment."
+                  </p>
                 </div>
               </div>
-            </details>
-          )}
+
+              {/* Visual Hierarchy Diagram */}
+              <div className="relative aspect-square flex items-center justify-center scale-90 lg:scale-100">
+                <div className="absolute inset-0 bg-blue-500/5 rounded-full blur-3xl"></div>
+                <div className="relative z-10 w-24 h-24 bg-[#0b0e14] border-2 border-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-600/40 animate-pulse">
+                  <Layers className="text-blue-500 w-10 h-10" />
+                  <div className="absolute top-1/2 left-full w-24 h-[1px] bg-gradient-to-r from-blue-600 to-transparent"></div>
+                  <div className="absolute top-1/2 right-full w-24 h-[1px] bg-gradient-to-l from-blue-600 to-transparent"></div>
+                  <div className="absolute bottom-full left-1/2 w-[1px] h-24 bg-gradient-to-t from-blue-600 to-transparent"></div>
+                  <div className="absolute top-full left-1/2 w-[1px] h-24 bg-gradient-to-b from-blue-600 to-transparent"></div>
+                </div>
+                <div className="absolute top-20 right-0 bg-[#161b22] border border-white/10 px-4 py-2 rounded text-[10px] font-bold text-blue-400 uppercase tracking-widest">WASM Fix</div>
+                <div className="absolute top-20 left-0 bg-[#161b22] border border-white/10 px-4 py-2 rounded text-[10px] font-bold text-blue-400 uppercase tracking-widest">Payload Hashing</div>
+                <div className="absolute bottom-20 right-0 bg-[#161b22] border border-white/10 px-4 py-2 rounded text-[10px] font-bold text-blue-400 uppercase tracking-widest">Header Audit</div>
+                <div className="absolute bottom-20 left-0 bg-[#161b22] border border-white/10 px-4 py-2 rounded text-[10px] font-bold text-blue-400 uppercase tracking-widest">Heap Fix</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. DIAGNOSTIC TERMINAL */}
+        <section id="audit" className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-12 lg:p-20 text-center relative overflow-hidden">
+            <div className="relative z-10">
+              {isScanning ? (
+                <div className="py-10">
+                  <Loader2 size={64} className="animate-spin text-white mx-auto mb-6" />
+                  <h2 className="text-3xl font-bold text-white uppercase tracking-widest">Initializing Forensic Diagnostic...</h2>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">Initiate Forensic <span className="text-black/30">Diagnostic</span></h2>
+                  <p className="text-blue-100 mb-10 max-w-xl mx-auto leading-relaxed text-lg italic">
+                    "Upload your Unity WebGL build for an authoritative 2026 compliance report and live deployment link."
+                  </p>
+                  <button 
+                    onClick={() => setIsScanning(true)}
+                    className="bg-white text-blue-600 hover:bg-blue-50 px-12 py-4 rounded-xl font-black text-lg transition-all shadow-xl hover:scale-105"
+                  >
+                    SELECT LOCAL ASSET (.ZIP)
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 7. ASSET REGISTRY (Success Stories) */}
+        <section className="py-24 bg-[#0f131a]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-white mb-12">Certified Asset Registry // 2026 Success Stories</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { 
+                  company: 'PROJECT FRONTIER', 
+                  quote: '"HTML5 Studio solved our WASM heap issues on Safari iOS in seconds. Our Meta Instant Game launch was flawless. Authoritative certification is a game changer."',
+                  author: 'Greg Rhind',
+                  title: 'Development Lead'
+                },
+                { 
+                  company: 'WGL-CERT-000822', 
+                  quote: '"Managing multiple builds across Telegram and Discord was a nightmare until we integrated the HTML5 Studio deployment bridge. Zero-latency handshakes guaranteed."',
+                  author: 'Sarah Jenkins',
+                  title: 'Technical Director'
+                }
+              ].map((t, i) => (
+                <div key={i} className="bg-[#161b22] p-10 rounded-2xl border border-white/5">
+                  <div className="text-blue-500 font-black tracking-tighter text-xl mb-8">{t.company}</div>
+                  <p className="text-gray-300 italic mb-8 leading-relaxed text-lg">{t.quote}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center"><ShieldCheck size={20} className="text-blue-500"/></div>
+                    <div>
+                      <div className="text-white font-bold">{t.author}</div>
+                      <div className="text-xs text-gray-500">{t.title}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* 8. FOOTER */}
+      <footer className="bg-[#0b0e14] border-t border-white/5 pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.5em]">
+            AIMATIONTECH.COM // HTML5STUDIO v5.0 // THE DIGITAL FRONTIER
+          </div>
         </div>
-      )}
+      </footer>
     </div>
   );
 }
-
-function ConfigBlock({ title, content, onCopy }: { title: string; content: string; onCopy: () => void }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div style={{ marginTop: 10, border: "1px solid #eee", borderRadius: 12, padding: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          style={{
-            padding: 0,
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            fontWeight: 900,
-            textAlign: "left",
-            flex: 1,
-          }}
-          aria-expanded={open}
-        >
-          {open ? "▾ " : "▸ "}
-          {title}
-        </button>
-
-        <button type="button" onClick={onCopy} style={ghostBtn}>
-          Copy
-        </button>
-      </div>
-
-      {open && (
-        <pre
-          style={{
-            marginTop: 10,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            background: "#fafafa",
-            borderRadius: 10,
-            padding: 12,
-            fontSize: 12,
-            overflowX: "auto",
-          }}
-        >
-          {content}
-        </pre>
-      )}
-    </div>
-  );
-}
-
-function Kpi({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 12, minWidth: 160 }}>
-      <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
-      <div style={{ fontWeight: 900, fontSize: 18 }}>{value}</div>
-    </div>
-  );
-}
-
-const primaryBtn: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: 10,
-  border: "1px solid #111",
-  background: "#111",
-  color: "#fff",
-  cursor: "pointer",
-  fontWeight: 900,
-};
-
-const linkBtn: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: 10,
-  border: "1px solid #111",
-  background: "#111",
-  color: "#fff",
-  fontWeight: 900,
-  textDecoration: "none",
-};
-
-const ghostBtn: React.CSSProperties = {
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid #ddd",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 13,
-};
