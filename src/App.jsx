@@ -96,7 +96,7 @@ export default function App() {
           </div>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
              <div style={{ width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%)', position: 'absolute' }}></div>
-             <img src="/WebGL_HTML5STUDIO_Certified_Seal.jpg" style={{ width: '280px', filter: 'drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))', borderRadius: '50%' }} alt="Authority Hub" />
+             <img src="/WebGL_HTML5STUDIO_Certified_Seal.png" style={{ width: '280px', filter: 'drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))', borderRadius: '50%' }} alt="Authority Hub" />
           </div>
         </div>
       </header>

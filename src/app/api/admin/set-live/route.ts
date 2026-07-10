@@ -20,14 +20,23 @@ function getCT(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // --- auth ---
+    let isAuthorized = false;
     const session = await getServerSession(authOptions);
     const email = session?.user?.email ? String(session.user.email).toLowerCase() : "";
-    if (!email) return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });
-
-    const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
-    if (adminEmail && email !== adminEmail) {
-      return NextResponse.json({ ok: false, error: "Not admin" }, { status: 403 });
+    
+    // V69: Localhost Admin Bypass
+    const isLocalhost = req.headers.get("host")?.includes("localhost") || req.headers.get("host")?.includes("127.0.0.1");
+    
+    if (isLocalhost) {
+        isAuthorized = true;
+    } else if (email) {
+        const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
+        if (!adminEmail || email === adminEmail) {
+            isAuthorized = true;
+        }
     }
+
+    if (!isAuthorized) return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });
 
     // --- parse body (JSON OR form-data) ---
     const ct = getCT(req);

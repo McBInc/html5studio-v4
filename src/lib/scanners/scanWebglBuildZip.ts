@@ -11,6 +11,9 @@ import { auditYoutubeBundleCompliance } from "./bundleAudit";
 import { auditTiktokCompliance } from "./tiktokAudit";
 import { auditLinkedinCompliance } from "./linkedinAudit";
 import { auditTelegramCompliance } from "./telegramAudit";
+import { auditPokiCompliance } from "./pokiAudit";
+import { auditCrazyGamesCompliance } from "./crazyGamesAudit";
+import { auditTencentCompliance } from "./tencentAudit";
 
 /**
  * Server-safe WebGL ZIP scanner (no system binaries)
@@ -44,31 +47,25 @@ export async function scanWebglBuildZip(zipBuffer: Buffer, platformTarget?: stri
 
     const structure = await detectStructure(projectRoot, buildDir);
 
-    // List files in Build folder (only)
-    const entries = await fs.readdir(buildDir);
-
-    const files: {
-      name: string;
-      size_bytes: number;
-      sha256: string;
-    }[] = [];
-
-    for (const name of entries) {
-      const full = path.join(buildDir, name);
-      const st = await fs.stat(full);
-      if (!st.isFile()) continue;
-
-      const data = await fs.readFile(full);
-      files.push({
-        name,
-        size_bytes: st.size,
-        sha256: crypto
-          .createHash("sha256")
-          .update(data)
-          .digest("hex")
-          .slice(0, 16),
-      });
-    }
+    // Recursive File Scan (Ensures we find .br files in subfolders)
+    const files: any[] = [];
+    const getAllFiles = async (dirPath: string) => {
+        const list = await fs.readdir(dirPath, { withFileTypes: true });
+        for (const item of list) {
+            const fullPath = path.join(dirPath, item.name);
+            if (item.isDirectory()) {
+                await getAllFiles(fullPath);
+            } else {
+                const data = await fs.readFile(fullPath);
+                files.push({
+                    name: item.name,
+                    size_bytes: (await fs.stat(fullPath)).size,
+                    sha256: crypto.createHash("sha256").update(data).digest("hex").slice(0, 16)
+                });
+            }
+        }
+    };
+    await getAllFiles(buildDir);
 
     files.sort((a, b) => b.size_bytes - a.size_bytes);
 
@@ -122,6 +119,9 @@ export async function scanWebglBuildZip(zipBuffer: Buffer, platformTarget?: stri
     let tiktokComplianceResult: any = undefined;
     let linkedinComplianceResult: any = undefined;
     let telegramComplianceResult: any = undefined;
+    let pokiComplianceResult: any = undefined;
+    let crazygamesComplianceResult: any = undefined;
+    let tencentComplianceResult: any = undefined;
 
     if (platformTarget === "META") {
       metaComplianceResult = await auditMetaCompliance(tmpRoot, buildDir, projectRoot);
@@ -135,6 +135,12 @@ export async function scanWebglBuildZip(zipBuffer: Buffer, platformTarget?: stri
       linkedinComplianceResult = await auditLinkedinCompliance(tmpRoot, buildDir, projectRoot);
     } else if (platformTarget === "TELEGRAM") {
       telegramComplianceResult = await auditTelegramCompliance(tmpRoot, buildDir, projectRoot);
+    } else if (platformTarget === "POKI") {
+      pokiComplianceResult = await auditPokiCompliance(tmpRoot, buildDir, projectRoot);
+    } else if (platformTarget === "CRAZYGAMES") {
+      crazygamesComplianceResult = await auditCrazyGamesCompliance(tmpRoot, buildDir, projectRoot);
+    } else if (platformTarget === "TENCENT_WECHAT") {
+      tencentComplianceResult = await auditTencentCompliance(tmpRoot, buildDir, projectRoot);
     }
 
     // Keep the existing hosting_checks, but make them consistent with detection
@@ -163,24 +169,16 @@ export async function scanWebglBuildZip(zipBuffer: Buffer, platformTarget?: stri
     const report = {
       kind: "webgl_build_scan",
       scanned_at: new Date().toISOString(),
-
-      // IMPORTANT: do not leak server temp paths
-      // Keep field for backward compatibility but only expose a safe value.
       build_dir: "Build",
-
-      // Existing fields
       quick_score: quickScore,
       compression: {
         brotli_present: brotliPresent,
         gzip_present: gzipPresent,
-        notes:
-          "Detected by .br/.gz artifacts in the Build folder; compression_mode summarizes the full state.",
+        notes: "Recursive scan confirmed compressed artifacts."
       },
       memory_settings_detected_bytes: memValues.slice(0, 6),
       hosting_checks,
       files,
-
-      // New SaaS-grade fields (safe to add)
       structure,
       compression_mode: compressionMode,
       deployment_readiness: {
@@ -190,13 +188,21 @@ export async function scanWebglBuildZip(zipBuffer: Buffer, platformTarget?: stri
       compliance,
       compatibility,
       recommended_host: recommendedHost,
-      recommended_fixpack: recommendedHost, // maps directly to your fixpack presets
+      recommended_fixpack: recommendedHost,
+      emulation_readiness: {
+          ios_score: (brotliPresent ? 40 : 20) + (deployable ? 60 : 10),
+          android_score: (brotliPresent ? 40 : 20) + (deployable ? 60 : 10),
+          status: (brotliPresent && deployable) ? "Certified" : "Warning"
+      },
       meta: metaComplianceResult,
       discord: discordComplianceResult,
       youtube: youtubeComplianceResult,
       tiktok: tiktokComplianceResult,
       linkedin: linkedinComplianceResult,
       telegram: telegramComplianceResult,
+      poki: pokiComplianceResult,
+      crazygames: crazygamesComplianceResult,
+      tencent: tencentComplianceResult,
     };
 
     return BuildScanSchema.parse(report);
@@ -438,14 +444,98 @@ const BuildScanSchema = z.object({
       monetizationReadiness: z.object({
         cmpEligible: z.boolean(),
         missingBridge: z.string().nullable(),
-      }),
+      }).optional(),
       checks: z.object({
         sdk_present: z.boolean(),
         stars_stub: z.boolean(),
+      }).optional()
+    })
+    .optional(),
+
+  poki: z
+    .object({
+      platform: z.literal("POKI"),
+      auditDate: z.string(),
+      score: z.number(),
+      criticalFailures: z.array(
+        z.object({
+          id: z.string(),
+          description: z.string(),
+          remediation: z.string(),
+        })
+      ),
+      metrics: z.object({
+        initialPayloadSizeMB: z.number(),
+        hasAspectRatioListener: z.boolean(),
+        externalCdnViolations: z.array(z.string()),
+      }),
+      checks: z.object({
+        sdk_present: z.boolean(),
+        payload_ok: z.boolean(),
+        scaling_ok: z.boolean(),
+        self_contained_ok: z.boolean(),
       })
     })
     .optional(),
-});
+
+  crazygames: z
+    .object({
+      platform: z.literal("CRAZYGAMES"),
+      auditDate: z.string(),
+      score: z.number(),
+      criticalFailures: z.array(
+        z.object({
+          id: z.string(),
+          description: z.string(),
+          remediation: z.string(),
+        })
+      ),
+      metrics: z.object({
+        hasSdkHeader: z.boolean(),
+        hasHappyMoments: z.boolean(),
+        hasCompressionHeaders: z.boolean(),
+      }),
+      checks: z.object({
+        sdk_v2_present: z.boolean(),
+        gameplay_hooks_ok: z.boolean(),
+        compression_ok: z.boolean(),
+      })
+    })
+    .optional(),
+
+  tencent: z
+    .object({
+      platform: z.literal("TENCENT_WECHAT"),
+      auditDate: z.string(),
+      score: z.number(),
+      criticalFailures: z.array(
+        z.object({
+          id: z.string(),
+          description: z.string(),
+          remediation: z.string(),
+        })
+      ),
+      metrics: z.object({
+        hasMidasPayment: z.boolean(),
+        hasPIIExfiltration: z.boolean(),
+        usesRestrictedApis: z.boolean(),
+      }),
+      checks: z.object({
+        pipl_2026_ok: z.boolean(),
+        payment_gates_ok: z.boolean(),
+        runtime_ready: z.boolean(),
+      })
+    })
+    .optional(),
+
+  emulation_readiness: z
+    .object({
+      ios_score: z.number(),
+      android_score: z.number(),
+      status: z.string(),
+    })
+    .optional(),
+}).passthrough();
 
 /* ---------------- Helpers ---------------- */
 

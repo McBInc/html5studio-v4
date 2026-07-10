@@ -57,36 +57,37 @@ model Project {
 }
 
 model Build {
-  id               String         @id @default(cuid())
-  userId           String
-  projectId        String
-  buildNumber      Int?
-  versionLabel     String?
-  status           String         @default("scanned")
-  scanResult       Json?
-  scannedAt        DateTime?
-  quickScore       Int?
-  brotliPresent    Boolean?
-  gzipPresent      Boolean?
-  uploadStorageKey String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  allocationAt     DateTime?
-  certId           String?        @unique
-  certifiedAt      DateTime?
-  clipUrl          String?
-  liveUrl          String?
-  reportStatus     String         @default("draft")
-  tier             String         @default("BASIC")
-  platformTarget   PlatformTarget @default(WEB)
-  publishStatus    PublishStatus?
-  publishedAt      DateTime?
-  publishEvidence  Json?
-  project          Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fixPacks         FixPack[]
-  launchProfile    LaunchProfile?
-  publishJobs      PublishJob[]
+  id                 String         @id @default(cuid())
+  userId             String
+  projectId          String
+  buildNumber        Int?
+  versionLabel       String?
+  status             String         @default("scanned")
+  scanResult         Json?
+  emulationReadiness Json?
+  scannedAt          DateTime?
+  quickScore         Int?
+  brotliPresent      Boolean?
+  gzipPresent        Boolean?
+  uploadStorageKey   String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  allocationAt       DateTime?
+  certId             String?        @unique
+  certifiedAt        DateTime?
+  clipUrl            String?
+  liveUrl            String?
+  reportStatus       String         @default("draft")
+  tier               String         @default("BASIC")
+  platformTarget     PlatformTarget @default(WEB)
+  publishStatus      PublishStatus?
+  publishedAt        DateTime?
+  publishEvidence    Json?
+  project            Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fixPacks           FixPack[]
+  launchProfile      LaunchProfile?
+  publishJobs        PublishJob[]
 
   @@index([userId])
   @@index([projectId])
@@ -252,6 +253,9 @@ enum PlatformTarget {
   TIKTOK
   YOUTUBE_PLAYABLES
   LINKEDIN_GAMES
+  POKI
+  CRAZYGAMES
+  TENCENT_WECHAT
 }
 
 enum PublishMode {
@@ -265,4 +269,23 @@ enum PublishStatus {
   SUCCEEDED
   FAILED
   CANCELLED
+}
+
+// [VSA INTERFACE 4: SYSTEM 3 CONTROL] - Structural Intelligence Storage
+model GameStudio {
+  id               String   @id @default(cuid())
+  name             String   @unique
+  website          String?
+  contact_email    String?
+  country          String?
+  studio_size      String?
+  platforms        String[]
+  games            String[]
+  source_directory String?
+  compliance_risks String[]
+  risk_level       String?
+  tags             String[]
+  outreach_sent    Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

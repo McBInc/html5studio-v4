@@ -83,6 +83,11 @@ export type VerificationToken = $Result.DefaultSelection<Prisma.$VerificationTok
  * 
  */
 export type Authenticator = $Result.DefaultSelection<Prisma.$AuthenticatorPayload>
+/**
+ * Model GameStudio
+ * 
+ */
+export type GameStudio = $Result.DefaultSelection<Prisma.$GameStudioPayload>
 
 /**
  * Enums
@@ -96,7 +101,10 @@ export namespace $Enums {
   DISCORD: 'DISCORD',
   TIKTOK: 'TIKTOK',
   YOUTUBE_PLAYABLES: 'YOUTUBE_PLAYABLES',
-  LINKEDIN_GAMES: 'LINKEDIN_GAMES'
+  LINKEDIN_GAMES: 'LINKEDIN_GAMES',
+  POKI: 'POKI',
+  CRAZYGAMES: 'CRAZYGAMES',
+  TENCENT_WECHAT: 'TENCENT_WECHAT'
 };
 
 export type PlatformTarget = (typeof PlatformTarget)[keyof typeof PlatformTarget]
@@ -140,7 +148,9 @@ export const PublishStatus: typeof $Enums.PublishStatus
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
- * const prisma = new PrismaClient()
+ * const prisma = new PrismaClient({
+ *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+ * })
  * // Fetch zero or more Users
  * const users = await prisma.user.findMany()
  * ```
@@ -161,7 +171,9 @@ export class PrismaClient<
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
-   * const prisma = new PrismaClient()
+   * const prisma = new PrismaClient({
+   *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+   * })
    * // Fetch zero or more Users
    * const users = await prisma.user.findMany()
    * ```
@@ -241,9 +253,9 @@ export class PrismaClient<
    * ])
    * ```
    * 
-   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+   * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
 
@@ -390,6 +402,16 @@ export class PrismaClient<
     * ```
     */
   get authenticator(): Prisma.AuthenticatorDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.gameStudio`: Exposes CRUD operations for the **GameStudio** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GameStudios
+    * const gameStudios = await prisma.gameStudio.findMany()
+    * ```
+    */
+  get gameStudio(): Prisma.GameStudioDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -440,8 +462,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 7.4.0
-   * Query Engine version: ab56fe763f921d033a6c195e7ddeb3e255bdbb57
+   * Prisma Client JS version: 7.8.0
+   * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
    */
   export type PrismaVersion = {
     client: string
@@ -837,7 +859,8 @@ export namespace Prisma {
     Account: 'Account',
     Session: 'Session',
     VerificationToken: 'VerificationToken',
-    Authenticator: 'Authenticator'
+    Authenticator: 'Authenticator',
+    GameStudio: 'GameStudio'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -853,7 +876,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "entitlement" | "project" | "build" | "publishJob" | "certSequence" | "launchProfile" | "fixPack" | "platform" | "host" | "account" | "session" | "verificationToken" | "authenticator"
+      modelProps: "user" | "entitlement" | "project" | "build" | "publishJob" | "certSequence" | "launchProfile" | "fixPack" | "platform" | "host" | "account" | "session" | "verificationToken" | "authenticator" | "gameStudio"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1893,6 +1916,80 @@ export namespace Prisma {
           }
         }
       }
+      GameStudio: {
+        payload: Prisma.$GameStudioPayload<ExtArgs>
+        fields: Prisma.GameStudioFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GameStudioFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GameStudioFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>
+          }
+          findFirst: {
+            args: Prisma.GameStudioFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GameStudioFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>
+          }
+          findMany: {
+            args: Prisma.GameStudioFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>[]
+          }
+          create: {
+            args: Prisma.GameStudioCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>
+          }
+          createMany: {
+            args: Prisma.GameStudioCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GameStudioCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>[]
+          }
+          delete: {
+            args: Prisma.GameStudioDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>
+          }
+          update: {
+            args: Prisma.GameStudioUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>
+          }
+          deleteMany: {
+            args: Prisma.GameStudioDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GameStudioUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GameStudioUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>[]
+          }
+          upsert: {
+            args: Prisma.GameStudioUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameStudioPayload>
+          }
+          aggregate: {
+            args: Prisma.GameStudioAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGameStudio>
+          }
+          groupBy: {
+            args: Prisma.GameStudioGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GameStudioGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GameStudioCountArgs<ExtArgs>
+            result: $Utils.Optional<GameStudioCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2015,6 +2112,7 @@ export namespace Prisma {
     session?: SessionOmit
     verificationToken?: VerificationTokenOmit
     authenticator?: AuthenticatorOmit
+    gameStudio?: GameStudioOmit
   }
 
   /* Types for Logging */
@@ -3245,6 +3343,11 @@ export namespace Prisma {
      * Skip the first `n` Users.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Users.
+     */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
@@ -4517,6 +4620,11 @@ export namespace Prisma {
      * Skip the first `n` Entitlements.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Entitlements.
+     */
     distinct?: EntitlementScalarFieldEnum | EntitlementScalarFieldEnum[]
   }
 
@@ -5600,6 +5708,11 @@ export namespace Prisma {
      * Skip the first `n` Projects.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Projects.
+     */
     distinct?: ProjectScalarFieldEnum | ProjectScalarFieldEnum[]
   }
 
@@ -5924,6 +6037,7 @@ export namespace Prisma {
     versionLabel: number
     status: number
     scanResult: number
+    emulationReadiness: number
     scannedAt: number
     quickScore: number
     brotliPresent: number
@@ -6016,6 +6130,7 @@ export namespace Prisma {
     versionLabel?: true
     status?: true
     scanResult?: true
+    emulationReadiness?: true
     scannedAt?: true
     quickScore?: true
     brotliPresent?: true
@@ -6131,6 +6246,7 @@ export namespace Prisma {
     versionLabel: string | null
     status: string
     scanResult: JsonValue | null
+    emulationReadiness: JsonValue | null
     scannedAt: Date | null
     quickScore: number | null
     brotliPresent: boolean | null
@@ -6178,6 +6294,7 @@ export namespace Prisma {
     versionLabel?: boolean
     status?: boolean
     scanResult?: boolean
+    emulationReadiness?: boolean
     scannedAt?: boolean
     quickScore?: boolean
     brotliPresent?: boolean
@@ -6212,6 +6329,7 @@ export namespace Prisma {
     versionLabel?: boolean
     status?: boolean
     scanResult?: boolean
+    emulationReadiness?: boolean
     scannedAt?: boolean
     quickScore?: boolean
     brotliPresent?: boolean
@@ -6242,6 +6360,7 @@ export namespace Prisma {
     versionLabel?: boolean
     status?: boolean
     scanResult?: boolean
+    emulationReadiness?: boolean
     scannedAt?: boolean
     quickScore?: boolean
     brotliPresent?: boolean
@@ -6272,6 +6391,7 @@ export namespace Prisma {
     versionLabel?: boolean
     status?: boolean
     scanResult?: boolean
+    emulationReadiness?: boolean
     scannedAt?: boolean
     quickScore?: boolean
     brotliPresent?: boolean
@@ -6292,7 +6412,7 @@ export namespace Prisma {
     publishEvidence?: boolean
   }
 
-  export type BuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "projectId" | "buildNumber" | "versionLabel" | "status" | "scanResult" | "scannedAt" | "quickScore" | "brotliPresent" | "gzipPresent" | "uploadStorageKey" | "createdAt" | "updatedAt" | "allocationAt" | "certId" | "certifiedAt" | "clipUrl" | "liveUrl" | "reportStatus" | "tier" | "platformTarget" | "publishStatus" | "publishedAt" | "publishEvidence", ExtArgs["result"]["build"]>
+  export type BuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "projectId" | "buildNumber" | "versionLabel" | "status" | "scanResult" | "emulationReadiness" | "scannedAt" | "quickScore" | "brotliPresent" | "gzipPresent" | "uploadStorageKey" | "createdAt" | "updatedAt" | "allocationAt" | "certId" | "certifiedAt" | "clipUrl" | "liveUrl" | "reportStatus" | "tier" | "platformTarget" | "publishStatus" | "publishedAt" | "publishEvidence", ExtArgs["result"]["build"]>
   export type BuildInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6327,6 +6447,7 @@ export namespace Prisma {
       versionLabel: string | null
       status: string
       scanResult: Prisma.JsonValue | null
+      emulationReadiness: Prisma.JsonValue | null
       scannedAt: Date | null
       quickScore: number | null
       brotliPresent: boolean | null
@@ -6780,6 +6901,7 @@ export namespace Prisma {
     readonly versionLabel: FieldRef<"Build", 'String'>
     readonly status: FieldRef<"Build", 'String'>
     readonly scanResult: FieldRef<"Build", 'Json'>
+    readonly emulationReadiness: FieldRef<"Build", 'Json'>
     readonly scannedAt: FieldRef<"Build", 'DateTime'>
     readonly quickScore: FieldRef<"Build", 'Int'>
     readonly brotliPresent: FieldRef<"Build", 'Boolean'>
@@ -6994,6 +7116,11 @@ export namespace Prisma {
      * Skip the first `n` Builds.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Builds.
+     */
     distinct?: BuildScalarFieldEnum | BuildScalarFieldEnum[]
   }
 
@@ -8228,6 +8355,11 @@ export namespace Prisma {
      * Skip the first `n` PublishJobs.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PublishJobs.
+     */
     distinct?: PublishJobScalarFieldEnum | PublishJobScalarFieldEnum[]
   }
 
@@ -9263,6 +9395,11 @@ export namespace Prisma {
      * Skip the first `n` CertSequences.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CertSequences.
+     */
     distinct?: CertSequenceScalarFieldEnum | CertSequenceScalarFieldEnum[]
   }
 
@@ -10490,6 +10627,11 @@ export namespace Prisma {
      * Skip the first `n` LaunchProfiles.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LaunchProfiles.
+     */
     distinct?: LaunchProfileScalarFieldEnum | LaunchProfileScalarFieldEnum[]
   }
 
@@ -11612,6 +11754,11 @@ export namespace Prisma {
      * Skip the first `n` FixPacks.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FixPacks.
+     */
     distinct?: FixPackScalarFieldEnum | FixPackScalarFieldEnum[]
   }
 
@@ -12829,6 +12976,11 @@ export namespace Prisma {
      * Skip the first `n` Platforms.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Platforms.
+     */
     distinct?: PlatformScalarFieldEnum | PlatformScalarFieldEnum[]
   }
 
@@ -14024,6 +14176,11 @@ export namespace Prisma {
      * Skip the first `n` Hosts.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Hosts.
+     */
     distinct?: HostScalarFieldEnum | HostScalarFieldEnum[]
   }
 
@@ -15223,6 +15380,11 @@ export namespace Prisma {
      * Skip the first `n` Accounts.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Accounts.
+     */
     distinct?: AccountScalarFieldEnum | AccountScalarFieldEnum[]
   }
 
@@ -16268,6 +16430,11 @@ export namespace Prisma {
      * Skip the first `n` Sessions.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Sessions.
+     */
     distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
   }
 
@@ -17265,6 +17432,11 @@ export namespace Prisma {
      * Skip the first `n` VerificationTokens.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VerificationTokens.
+     */
     distinct?: VerificationTokenScalarFieldEnum | VerificationTokenScalarFieldEnum[]
   }
 
@@ -18368,6 +18540,11 @@ export namespace Prisma {
      * Skip the first `n` Authenticators.
      */
     skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Authenticators.
+     */
     distinct?: AuthenticatorScalarFieldEnum | AuthenticatorScalarFieldEnum[]
   }
 
@@ -18587,6 +18764,1120 @@ export namespace Prisma {
 
 
   /**
+   * Model GameStudio
+   */
+
+  export type AggregateGameStudio = {
+    _count: GameStudioCountAggregateOutputType | null
+    _min: GameStudioMinAggregateOutputType | null
+    _max: GameStudioMaxAggregateOutputType | null
+  }
+
+  export type GameStudioMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    website: string | null
+    contact_email: string | null
+    country: string | null
+    studio_size: string | null
+    source_directory: string | null
+    risk_level: string | null
+    outreach_sent: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GameStudioMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    website: string | null
+    contact_email: string | null
+    country: string | null
+    studio_size: string | null
+    source_directory: string | null
+    risk_level: string | null
+    outreach_sent: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GameStudioCountAggregateOutputType = {
+    id: number
+    name: number
+    website: number
+    contact_email: number
+    country: number
+    studio_size: number
+    platforms: number
+    games: number
+    source_directory: number
+    compliance_risks: number
+    risk_level: number
+    tags: number
+    outreach_sent: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GameStudioMinAggregateInputType = {
+    id?: true
+    name?: true
+    website?: true
+    contact_email?: true
+    country?: true
+    studio_size?: true
+    source_directory?: true
+    risk_level?: true
+    outreach_sent?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GameStudioMaxAggregateInputType = {
+    id?: true
+    name?: true
+    website?: true
+    contact_email?: true
+    country?: true
+    studio_size?: true
+    source_directory?: true
+    risk_level?: true
+    outreach_sent?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GameStudioCountAggregateInputType = {
+    id?: true
+    name?: true
+    website?: true
+    contact_email?: true
+    country?: true
+    studio_size?: true
+    platforms?: true
+    games?: true
+    source_directory?: true
+    compliance_risks?: true
+    risk_level?: true
+    tags?: true
+    outreach_sent?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GameStudioAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GameStudio to aggregate.
+     */
+    where?: GameStudioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameStudios to fetch.
+     */
+    orderBy?: GameStudioOrderByWithRelationInput | GameStudioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GameStudioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameStudios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameStudios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GameStudios
+    **/
+    _count?: true | GameStudioCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GameStudioMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GameStudioMaxAggregateInputType
+  }
+
+  export type GetGameStudioAggregateType<T extends GameStudioAggregateArgs> = {
+        [P in keyof T & keyof AggregateGameStudio]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGameStudio[P]>
+      : GetScalarType<T[P], AggregateGameStudio[P]>
+  }
+
+
+
+
+  export type GameStudioGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameStudioWhereInput
+    orderBy?: GameStudioOrderByWithAggregationInput | GameStudioOrderByWithAggregationInput[]
+    by: GameStudioScalarFieldEnum[] | GameStudioScalarFieldEnum
+    having?: GameStudioScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GameStudioCountAggregateInputType | true
+    _min?: GameStudioMinAggregateInputType
+    _max?: GameStudioMaxAggregateInputType
+  }
+
+  export type GameStudioGroupByOutputType = {
+    id: string
+    name: string
+    website: string | null
+    contact_email: string | null
+    country: string | null
+    studio_size: string | null
+    platforms: string[]
+    games: string[]
+    source_directory: string | null
+    compliance_risks: string[]
+    risk_level: string | null
+    tags: string[]
+    outreach_sent: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: GameStudioCountAggregateOutputType | null
+    _min: GameStudioMinAggregateOutputType | null
+    _max: GameStudioMaxAggregateOutputType | null
+  }
+
+  type GetGameStudioGroupByPayload<T extends GameStudioGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GameStudioGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GameStudioGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GameStudioGroupByOutputType[P]>
+            : GetScalarType<T[P], GameStudioGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GameStudioSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    website?: boolean
+    contact_email?: boolean
+    country?: boolean
+    studio_size?: boolean
+    platforms?: boolean
+    games?: boolean
+    source_directory?: boolean
+    compliance_risks?: boolean
+    risk_level?: boolean
+    tags?: boolean
+    outreach_sent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["gameStudio"]>
+
+  export type GameStudioSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    website?: boolean
+    contact_email?: boolean
+    country?: boolean
+    studio_size?: boolean
+    platforms?: boolean
+    games?: boolean
+    source_directory?: boolean
+    compliance_risks?: boolean
+    risk_level?: boolean
+    tags?: boolean
+    outreach_sent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["gameStudio"]>
+
+  export type GameStudioSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    website?: boolean
+    contact_email?: boolean
+    country?: boolean
+    studio_size?: boolean
+    platforms?: boolean
+    games?: boolean
+    source_directory?: boolean
+    compliance_risks?: boolean
+    risk_level?: boolean
+    tags?: boolean
+    outreach_sent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["gameStudio"]>
+
+  export type GameStudioSelectScalar = {
+    id?: boolean
+    name?: boolean
+    website?: boolean
+    contact_email?: boolean
+    country?: boolean
+    studio_size?: boolean
+    platforms?: boolean
+    games?: boolean
+    source_directory?: boolean
+    compliance_risks?: boolean
+    risk_level?: boolean
+    tags?: boolean
+    outreach_sent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type GameStudioOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "website" | "contact_email" | "country" | "studio_size" | "platforms" | "games" | "source_directory" | "compliance_risks" | "risk_level" | "tags" | "outreach_sent" | "createdAt" | "updatedAt", ExtArgs["result"]["gameStudio"]>
+
+  export type $GameStudioPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GameStudio"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      website: string | null
+      contact_email: string | null
+      country: string | null
+      studio_size: string | null
+      platforms: string[]
+      games: string[]
+      source_directory: string | null
+      compliance_risks: string[]
+      risk_level: string | null
+      tags: string[]
+      outreach_sent: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["gameStudio"]>
+    composites: {}
+  }
+
+  type GameStudioGetPayload<S extends boolean | null | undefined | GameStudioDefaultArgs> = $Result.GetResult<Prisma.$GameStudioPayload, S>
+
+  type GameStudioCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GameStudioFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GameStudioCountAggregateInputType | true
+    }
+
+  export interface GameStudioDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GameStudio'], meta: { name: 'GameStudio' } }
+    /**
+     * Find zero or one GameStudio that matches the filter.
+     * @param {GameStudioFindUniqueArgs} args - Arguments to find a GameStudio
+     * @example
+     * // Get one GameStudio
+     * const gameStudio = await prisma.gameStudio.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GameStudioFindUniqueArgs>(args: SelectSubset<T, GameStudioFindUniqueArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GameStudio that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GameStudioFindUniqueOrThrowArgs} args - Arguments to find a GameStudio
+     * @example
+     * // Get one GameStudio
+     * const gameStudio = await prisma.gameStudio.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GameStudioFindUniqueOrThrowArgs>(args: SelectSubset<T, GameStudioFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GameStudio that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioFindFirstArgs} args - Arguments to find a GameStudio
+     * @example
+     * // Get one GameStudio
+     * const gameStudio = await prisma.gameStudio.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GameStudioFindFirstArgs>(args?: SelectSubset<T, GameStudioFindFirstArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GameStudio that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioFindFirstOrThrowArgs} args - Arguments to find a GameStudio
+     * @example
+     * // Get one GameStudio
+     * const gameStudio = await prisma.gameStudio.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GameStudioFindFirstOrThrowArgs>(args?: SelectSubset<T, GameStudioFindFirstOrThrowArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GameStudios that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GameStudios
+     * const gameStudios = await prisma.gameStudio.findMany()
+     * 
+     * // Get first 10 GameStudios
+     * const gameStudios = await prisma.gameStudio.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const gameStudioWithIdOnly = await prisma.gameStudio.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GameStudioFindManyArgs>(args?: SelectSubset<T, GameStudioFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GameStudio.
+     * @param {GameStudioCreateArgs} args - Arguments to create a GameStudio.
+     * @example
+     * // Create one GameStudio
+     * const GameStudio = await prisma.gameStudio.create({
+     *   data: {
+     *     // ... data to create a GameStudio
+     *   }
+     * })
+     * 
+     */
+    create<T extends GameStudioCreateArgs>(args: SelectSubset<T, GameStudioCreateArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GameStudios.
+     * @param {GameStudioCreateManyArgs} args - Arguments to create many GameStudios.
+     * @example
+     * // Create many GameStudios
+     * const gameStudio = await prisma.gameStudio.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GameStudioCreateManyArgs>(args?: SelectSubset<T, GameStudioCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GameStudios and returns the data saved in the database.
+     * @param {GameStudioCreateManyAndReturnArgs} args - Arguments to create many GameStudios.
+     * @example
+     * // Create many GameStudios
+     * const gameStudio = await prisma.gameStudio.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GameStudios and only return the `id`
+     * const gameStudioWithIdOnly = await prisma.gameStudio.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GameStudioCreateManyAndReturnArgs>(args?: SelectSubset<T, GameStudioCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GameStudio.
+     * @param {GameStudioDeleteArgs} args - Arguments to delete one GameStudio.
+     * @example
+     * // Delete one GameStudio
+     * const GameStudio = await prisma.gameStudio.delete({
+     *   where: {
+     *     // ... filter to delete one GameStudio
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GameStudioDeleteArgs>(args: SelectSubset<T, GameStudioDeleteArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GameStudio.
+     * @param {GameStudioUpdateArgs} args - Arguments to update one GameStudio.
+     * @example
+     * // Update one GameStudio
+     * const gameStudio = await prisma.gameStudio.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GameStudioUpdateArgs>(args: SelectSubset<T, GameStudioUpdateArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GameStudios.
+     * @param {GameStudioDeleteManyArgs} args - Arguments to filter GameStudios to delete.
+     * @example
+     * // Delete a few GameStudios
+     * const { count } = await prisma.gameStudio.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GameStudioDeleteManyArgs>(args?: SelectSubset<T, GameStudioDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GameStudios.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GameStudios
+     * const gameStudio = await prisma.gameStudio.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GameStudioUpdateManyArgs>(args: SelectSubset<T, GameStudioUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GameStudios and returns the data updated in the database.
+     * @param {GameStudioUpdateManyAndReturnArgs} args - Arguments to update many GameStudios.
+     * @example
+     * // Update many GameStudios
+     * const gameStudio = await prisma.gameStudio.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GameStudios and only return the `id`
+     * const gameStudioWithIdOnly = await prisma.gameStudio.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GameStudioUpdateManyAndReturnArgs>(args: SelectSubset<T, GameStudioUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GameStudio.
+     * @param {GameStudioUpsertArgs} args - Arguments to update or create a GameStudio.
+     * @example
+     * // Update or create a GameStudio
+     * const gameStudio = await prisma.gameStudio.upsert({
+     *   create: {
+     *     // ... data to create a GameStudio
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GameStudio we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GameStudioUpsertArgs>(args: SelectSubset<T, GameStudioUpsertArgs<ExtArgs>>): Prisma__GameStudioClient<$Result.GetResult<Prisma.$GameStudioPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GameStudios.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioCountArgs} args - Arguments to filter GameStudios to count.
+     * @example
+     * // Count the number of GameStudios
+     * const count = await prisma.gameStudio.count({
+     *   where: {
+     *     // ... the filter for the GameStudios we want to count
+     *   }
+     * })
+    **/
+    count<T extends GameStudioCountArgs>(
+      args?: Subset<T, GameStudioCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GameStudioCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GameStudio.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GameStudioAggregateArgs>(args: Subset<T, GameStudioAggregateArgs>): Prisma.PrismaPromise<GetGameStudioAggregateType<T>>
+
+    /**
+     * Group by GameStudio.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameStudioGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GameStudioGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GameStudioGroupByArgs['orderBy'] }
+        : { orderBy?: GameStudioGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GameStudioGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGameStudioGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GameStudio model
+   */
+  readonly fields: GameStudioFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GameStudio.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GameStudioClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GameStudio model
+   */
+  interface GameStudioFieldRefs {
+    readonly id: FieldRef<"GameStudio", 'String'>
+    readonly name: FieldRef<"GameStudio", 'String'>
+    readonly website: FieldRef<"GameStudio", 'String'>
+    readonly contact_email: FieldRef<"GameStudio", 'String'>
+    readonly country: FieldRef<"GameStudio", 'String'>
+    readonly studio_size: FieldRef<"GameStudio", 'String'>
+    readonly platforms: FieldRef<"GameStudio", 'String[]'>
+    readonly games: FieldRef<"GameStudio", 'String[]'>
+    readonly source_directory: FieldRef<"GameStudio", 'String'>
+    readonly compliance_risks: FieldRef<"GameStudio", 'String[]'>
+    readonly risk_level: FieldRef<"GameStudio", 'String'>
+    readonly tags: FieldRef<"GameStudio", 'String[]'>
+    readonly outreach_sent: FieldRef<"GameStudio", 'Boolean'>
+    readonly createdAt: FieldRef<"GameStudio", 'DateTime'>
+    readonly updatedAt: FieldRef<"GameStudio", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GameStudio findUnique
+   */
+  export type GameStudioFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * Filter, which GameStudio to fetch.
+     */
+    where: GameStudioWhereUniqueInput
+  }
+
+  /**
+   * GameStudio findUniqueOrThrow
+   */
+  export type GameStudioFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * Filter, which GameStudio to fetch.
+     */
+    where: GameStudioWhereUniqueInput
+  }
+
+  /**
+   * GameStudio findFirst
+   */
+  export type GameStudioFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * Filter, which GameStudio to fetch.
+     */
+    where?: GameStudioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameStudios to fetch.
+     */
+    orderBy?: GameStudioOrderByWithRelationInput | GameStudioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GameStudios.
+     */
+    cursor?: GameStudioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameStudios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameStudios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GameStudios.
+     */
+    distinct?: GameStudioScalarFieldEnum | GameStudioScalarFieldEnum[]
+  }
+
+  /**
+   * GameStudio findFirstOrThrow
+   */
+  export type GameStudioFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * Filter, which GameStudio to fetch.
+     */
+    where?: GameStudioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameStudios to fetch.
+     */
+    orderBy?: GameStudioOrderByWithRelationInput | GameStudioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GameStudios.
+     */
+    cursor?: GameStudioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameStudios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameStudios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GameStudios.
+     */
+    distinct?: GameStudioScalarFieldEnum | GameStudioScalarFieldEnum[]
+  }
+
+  /**
+   * GameStudio findMany
+   */
+  export type GameStudioFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * Filter, which GameStudios to fetch.
+     */
+    where?: GameStudioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameStudios to fetch.
+     */
+    orderBy?: GameStudioOrderByWithRelationInput | GameStudioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GameStudios.
+     */
+    cursor?: GameStudioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameStudios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameStudios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GameStudios.
+     */
+    distinct?: GameStudioScalarFieldEnum | GameStudioScalarFieldEnum[]
+  }
+
+  /**
+   * GameStudio create
+   */
+  export type GameStudioCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * The data needed to create a GameStudio.
+     */
+    data: XOR<GameStudioCreateInput, GameStudioUncheckedCreateInput>
+  }
+
+  /**
+   * GameStudio createMany
+   */
+  export type GameStudioCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GameStudios.
+     */
+    data: GameStudioCreateManyInput | GameStudioCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GameStudio createManyAndReturn
+   */
+  export type GameStudioCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * The data used to create many GameStudios.
+     */
+    data: GameStudioCreateManyInput | GameStudioCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GameStudio update
+   */
+  export type GameStudioUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * The data needed to update a GameStudio.
+     */
+    data: XOR<GameStudioUpdateInput, GameStudioUncheckedUpdateInput>
+    /**
+     * Choose, which GameStudio to update.
+     */
+    where: GameStudioWhereUniqueInput
+  }
+
+  /**
+   * GameStudio updateMany
+   */
+  export type GameStudioUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GameStudios.
+     */
+    data: XOR<GameStudioUpdateManyMutationInput, GameStudioUncheckedUpdateManyInput>
+    /**
+     * Filter which GameStudios to update
+     */
+    where?: GameStudioWhereInput
+    /**
+     * Limit how many GameStudios to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GameStudio updateManyAndReturn
+   */
+  export type GameStudioUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * The data used to update GameStudios.
+     */
+    data: XOR<GameStudioUpdateManyMutationInput, GameStudioUncheckedUpdateManyInput>
+    /**
+     * Filter which GameStudios to update
+     */
+    where?: GameStudioWhereInput
+    /**
+     * Limit how many GameStudios to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GameStudio upsert
+   */
+  export type GameStudioUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * The filter to search for the GameStudio to update in case it exists.
+     */
+    where: GameStudioWhereUniqueInput
+    /**
+     * In case the GameStudio found by the `where` argument doesn't exist, create a new GameStudio with this data.
+     */
+    create: XOR<GameStudioCreateInput, GameStudioUncheckedCreateInput>
+    /**
+     * In case the GameStudio was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GameStudioUpdateInput, GameStudioUncheckedUpdateInput>
+  }
+
+  /**
+   * GameStudio delete
+   */
+  export type GameStudioDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+    /**
+     * Filter which GameStudio to delete.
+     */
+    where: GameStudioWhereUniqueInput
+  }
+
+  /**
+   * GameStudio deleteMany
+   */
+  export type GameStudioDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GameStudios to delete
+     */
+    where?: GameStudioWhereInput
+    /**
+     * Limit how many GameStudios to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GameStudio without action
+   */
+  export type GameStudioDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameStudio
+     */
+    select?: GameStudioSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameStudio
+     */
+    omit?: GameStudioOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -18651,6 +19942,7 @@ export namespace Prisma {
     versionLabel: 'versionLabel',
     status: 'status',
     scanResult: 'scanResult',
+    emulationReadiness: 'emulationReadiness',
     scannedAt: 'scannedAt',
     quickScore: 'quickScore',
     brotliPresent: 'brotliPresent',
@@ -18825,6 +20117,27 @@ export namespace Prisma {
   };
 
   export type AuthenticatorScalarFieldEnum = (typeof AuthenticatorScalarFieldEnum)[keyof typeof AuthenticatorScalarFieldEnum]
+
+
+  export const GameStudioScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    website: 'website',
+    contact_email: 'contact_email',
+    country: 'country',
+    studio_size: 'studio_size',
+    platforms: 'platforms',
+    games: 'games',
+    source_directory: 'source_directory',
+    compliance_risks: 'compliance_risks',
+    risk_level: 'risk_level',
+    tags: 'tags',
+    outreach_sent: 'outreach_sent',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GameStudioScalarFieldEnum = (typeof GameStudioScalarFieldEnum)[keyof typeof GameStudioScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -19256,6 +20569,7 @@ export namespace Prisma {
     versionLabel?: StringNullableFilter<"Build"> | string | null
     status?: StringFilter<"Build"> | string
     scanResult?: JsonNullableFilter<"Build">
+    emulationReadiness?: JsonNullableFilter<"Build">
     scannedAt?: DateTimeNullableFilter<"Build"> | Date | string | null
     quickScore?: IntNullableFilter<"Build"> | number | null
     brotliPresent?: BoolNullableFilter<"Build"> | boolean | null
@@ -19289,6 +20603,7 @@ export namespace Prisma {
     versionLabel?: SortOrderInput | SortOrder
     status?: SortOrder
     scanResult?: SortOrderInput | SortOrder
+    emulationReadiness?: SortOrderInput | SortOrder
     scannedAt?: SortOrderInput | SortOrder
     quickScore?: SortOrderInput | SortOrder
     brotliPresent?: SortOrderInput | SortOrder
@@ -19326,6 +20641,7 @@ export namespace Prisma {
     versionLabel?: StringNullableFilter<"Build"> | string | null
     status?: StringFilter<"Build"> | string
     scanResult?: JsonNullableFilter<"Build">
+    emulationReadiness?: JsonNullableFilter<"Build">
     scannedAt?: DateTimeNullableFilter<"Build"> | Date | string | null
     quickScore?: IntNullableFilter<"Build"> | number | null
     brotliPresent?: BoolNullableFilter<"Build"> | boolean | null
@@ -19358,6 +20674,7 @@ export namespace Prisma {
     versionLabel?: SortOrderInput | SortOrder
     status?: SortOrder
     scanResult?: SortOrderInput | SortOrder
+    emulationReadiness?: SortOrderInput | SortOrder
     scannedAt?: SortOrderInput | SortOrder
     quickScore?: SortOrderInput | SortOrder
     brotliPresent?: SortOrderInput | SortOrder
@@ -19394,6 +20711,7 @@ export namespace Prisma {
     versionLabel?: StringNullableWithAggregatesFilter<"Build"> | string | null
     status?: StringWithAggregatesFilter<"Build"> | string
     scanResult?: JsonNullableWithAggregatesFilter<"Build">
+    emulationReadiness?: JsonNullableWithAggregatesFilter<"Build">
     scannedAt?: DateTimeNullableWithAggregatesFilter<"Build"> | Date | string | null
     quickScore?: IntNullableWithAggregatesFilter<"Build"> | number | null
     brotliPresent?: BoolNullableWithAggregatesFilter<"Build"> | boolean | null
@@ -20194,6 +21512,108 @@ export namespace Prisma {
     transports?: StringNullableWithAggregatesFilter<"Authenticator"> | string | null
   }
 
+  export type GameStudioWhereInput = {
+    AND?: GameStudioWhereInput | GameStudioWhereInput[]
+    OR?: GameStudioWhereInput[]
+    NOT?: GameStudioWhereInput | GameStudioWhereInput[]
+    id?: StringFilter<"GameStudio"> | string
+    name?: StringFilter<"GameStudio"> | string
+    website?: StringNullableFilter<"GameStudio"> | string | null
+    contact_email?: StringNullableFilter<"GameStudio"> | string | null
+    country?: StringNullableFilter<"GameStudio"> | string | null
+    studio_size?: StringNullableFilter<"GameStudio"> | string | null
+    platforms?: StringNullableListFilter<"GameStudio">
+    games?: StringNullableListFilter<"GameStudio">
+    source_directory?: StringNullableFilter<"GameStudio"> | string | null
+    compliance_risks?: StringNullableListFilter<"GameStudio">
+    risk_level?: StringNullableFilter<"GameStudio"> | string | null
+    tags?: StringNullableListFilter<"GameStudio">
+    outreach_sent?: BoolFilter<"GameStudio"> | boolean
+    createdAt?: DateTimeFilter<"GameStudio"> | Date | string
+    updatedAt?: DateTimeFilter<"GameStudio"> | Date | string
+  }
+
+  export type GameStudioOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    website?: SortOrderInput | SortOrder
+    contact_email?: SortOrderInput | SortOrder
+    country?: SortOrderInput | SortOrder
+    studio_size?: SortOrderInput | SortOrder
+    platforms?: SortOrder
+    games?: SortOrder
+    source_directory?: SortOrderInput | SortOrder
+    compliance_risks?: SortOrder
+    risk_level?: SortOrderInput | SortOrder
+    tags?: SortOrder
+    outreach_sent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GameStudioWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: GameStudioWhereInput | GameStudioWhereInput[]
+    OR?: GameStudioWhereInput[]
+    NOT?: GameStudioWhereInput | GameStudioWhereInput[]
+    website?: StringNullableFilter<"GameStudio"> | string | null
+    contact_email?: StringNullableFilter<"GameStudio"> | string | null
+    country?: StringNullableFilter<"GameStudio"> | string | null
+    studio_size?: StringNullableFilter<"GameStudio"> | string | null
+    platforms?: StringNullableListFilter<"GameStudio">
+    games?: StringNullableListFilter<"GameStudio">
+    source_directory?: StringNullableFilter<"GameStudio"> | string | null
+    compliance_risks?: StringNullableListFilter<"GameStudio">
+    risk_level?: StringNullableFilter<"GameStudio"> | string | null
+    tags?: StringNullableListFilter<"GameStudio">
+    outreach_sent?: BoolFilter<"GameStudio"> | boolean
+    createdAt?: DateTimeFilter<"GameStudio"> | Date | string
+    updatedAt?: DateTimeFilter<"GameStudio"> | Date | string
+  }, "id" | "name">
+
+  export type GameStudioOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    website?: SortOrderInput | SortOrder
+    contact_email?: SortOrderInput | SortOrder
+    country?: SortOrderInput | SortOrder
+    studio_size?: SortOrderInput | SortOrder
+    platforms?: SortOrder
+    games?: SortOrder
+    source_directory?: SortOrderInput | SortOrder
+    compliance_risks?: SortOrder
+    risk_level?: SortOrderInput | SortOrder
+    tags?: SortOrder
+    outreach_sent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GameStudioCountOrderByAggregateInput
+    _max?: GameStudioMaxOrderByAggregateInput
+    _min?: GameStudioMinOrderByAggregateInput
+  }
+
+  export type GameStudioScalarWhereWithAggregatesInput = {
+    AND?: GameStudioScalarWhereWithAggregatesInput | GameStudioScalarWhereWithAggregatesInput[]
+    OR?: GameStudioScalarWhereWithAggregatesInput[]
+    NOT?: GameStudioScalarWhereWithAggregatesInput | GameStudioScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GameStudio"> | string
+    name?: StringWithAggregatesFilter<"GameStudio"> | string
+    website?: StringNullableWithAggregatesFilter<"GameStudio"> | string | null
+    contact_email?: StringNullableWithAggregatesFilter<"GameStudio"> | string | null
+    country?: StringNullableWithAggregatesFilter<"GameStudio"> | string | null
+    studio_size?: StringNullableWithAggregatesFilter<"GameStudio"> | string | null
+    platforms?: StringNullableListFilter<"GameStudio">
+    games?: StringNullableListFilter<"GameStudio">
+    source_directory?: StringNullableWithAggregatesFilter<"GameStudio"> | string | null
+    compliance_risks?: StringNullableListFilter<"GameStudio">
+    risk_level?: StringNullableWithAggregatesFilter<"GameStudio"> | string | null
+    tags?: StringNullableListFilter<"GameStudio">
+    outreach_sent?: BoolWithAggregatesFilter<"GameStudio"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"GameStudio"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GameStudio"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -20464,6 +21884,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -20497,6 +21918,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -20526,6 +21948,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20559,6 +21982,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20590,6 +22014,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -20616,6 +22041,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20644,6 +22070,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -21525,6 +22952,132 @@ export namespace Prisma {
     transports?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type GameStudioCreateInput = {
+    id?: string
+    name: string
+    website?: string | null
+    contact_email?: string | null
+    country?: string | null
+    studio_size?: string | null
+    platforms?: GameStudioCreateplatformsInput | string[]
+    games?: GameStudioCreategamesInput | string[]
+    source_directory?: string | null
+    compliance_risks?: GameStudioCreatecompliance_risksInput | string[]
+    risk_level?: string | null
+    tags?: GameStudioCreatetagsInput | string[]
+    outreach_sent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GameStudioUncheckedCreateInput = {
+    id?: string
+    name: string
+    website?: string | null
+    contact_email?: string | null
+    country?: string | null
+    studio_size?: string | null
+    platforms?: GameStudioCreateplatformsInput | string[]
+    games?: GameStudioCreategamesInput | string[]
+    source_directory?: string | null
+    compliance_risks?: GameStudioCreatecompliance_risksInput | string[]
+    risk_level?: string | null
+    tags?: GameStudioCreatetagsInput | string[]
+    outreach_sent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GameStudioUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    contact_email?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    studio_size?: NullableStringFieldUpdateOperationsInput | string | null
+    platforms?: GameStudioUpdateplatformsInput | string[]
+    games?: GameStudioUpdategamesInput | string[]
+    source_directory?: NullableStringFieldUpdateOperationsInput | string | null
+    compliance_risks?: GameStudioUpdatecompliance_risksInput | string[]
+    risk_level?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: GameStudioUpdatetagsInput | string[]
+    outreach_sent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameStudioUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    contact_email?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    studio_size?: NullableStringFieldUpdateOperationsInput | string | null
+    platforms?: GameStudioUpdateplatformsInput | string[]
+    games?: GameStudioUpdategamesInput | string[]
+    source_directory?: NullableStringFieldUpdateOperationsInput | string | null
+    compliance_risks?: GameStudioUpdatecompliance_risksInput | string[]
+    risk_level?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: GameStudioUpdatetagsInput | string[]
+    outreach_sent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameStudioCreateManyInput = {
+    id?: string
+    name: string
+    website?: string | null
+    contact_email?: string | null
+    country?: string | null
+    studio_size?: string | null
+    platforms?: GameStudioCreateplatformsInput | string[]
+    games?: GameStudioCreategamesInput | string[]
+    source_directory?: string | null
+    compliance_risks?: GameStudioCreatecompliance_risksInput | string[]
+    risk_level?: string | null
+    tags?: GameStudioCreatetagsInput | string[]
+    outreach_sent?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GameStudioUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    contact_email?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    studio_size?: NullableStringFieldUpdateOperationsInput | string | null
+    platforms?: GameStudioUpdateplatformsInput | string[]
+    games?: GameStudioUpdategamesInput | string[]
+    source_directory?: NullableStringFieldUpdateOperationsInput | string | null
+    compliance_risks?: GameStudioUpdatecompliance_risksInput | string[]
+    risk_level?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: GameStudioUpdatetagsInput | string[]
+    outreach_sent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameStudioUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    contact_email?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    studio_size?: NullableStringFieldUpdateOperationsInput | string | null
+    platforms?: GameStudioUpdateplatformsInput | string[]
+    games?: GameStudioUpdategamesInput | string[]
+    source_directory?: NullableStringFieldUpdateOperationsInput | string | null
+    compliance_risks?: GameStudioUpdatecompliance_risksInput | string[]
+    risk_level?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: GameStudioUpdatetagsInput | string[]
+    outreach_sent?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -21962,6 +23515,7 @@ export namespace Prisma {
     versionLabel?: SortOrder
     status?: SortOrder
     scanResult?: SortOrder
+    emulationReadiness?: SortOrder
     scannedAt?: SortOrder
     quickScore?: SortOrder
     brotliPresent?: SortOrder
@@ -22626,6 +24180,60 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
     _max?: NestedBytesFilter<$PrismaModel>
+  }
+
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
+  export type GameStudioCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    website?: SortOrder
+    contact_email?: SortOrder
+    country?: SortOrder
+    studio_size?: SortOrder
+    platforms?: SortOrder
+    games?: SortOrder
+    source_directory?: SortOrder
+    compliance_risks?: SortOrder
+    risk_level?: SortOrder
+    tags?: SortOrder
+    outreach_sent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GameStudioMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    website?: SortOrder
+    contact_email?: SortOrder
+    country?: SortOrder
+    studio_size?: SortOrder
+    source_directory?: SortOrder
+    risk_level?: SortOrder
+    outreach_sent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GameStudioMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    website?: SortOrder
+    contact_email?: SortOrder
+    country?: SortOrder
+    studio_size?: SortOrder
+    source_directory?: SortOrder
+    risk_level?: SortOrder
+    outreach_sent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -23356,6 +24964,42 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAuthenticatorsInput, UserUpdateWithoutAuthenticatorsInput>, UserUncheckedUpdateWithoutAuthenticatorsInput>
   }
 
+  export type GameStudioCreateplatformsInput = {
+    set: string[]
+  }
+
+  export type GameStudioCreategamesInput = {
+    set: string[]
+  }
+
+  export type GameStudioCreatecompliance_risksInput = {
+    set: string[]
+  }
+
+  export type GameStudioCreatetagsInput = {
+    set: string[]
+  }
+
+  export type GameStudioUpdateplatformsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type GameStudioUpdategamesInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type GameStudioUpdatecompliance_risksInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type GameStudioUpdatetagsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -23752,6 +25396,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -23783,6 +25428,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -23991,6 +25637,7 @@ export namespace Prisma {
     versionLabel?: StringNullableFilter<"Build"> | string | null
     status?: StringFilter<"Build"> | string
     scanResult?: JsonNullableFilter<"Build">
+    emulationReadiness?: JsonNullableFilter<"Build">
     scannedAt?: DateTimeNullableFilter<"Build"> | Date | string | null
     quickScore?: IntNullableFilter<"Build"> | number | null
     brotliPresent?: BoolNullableFilter<"Build"> | boolean | null
@@ -24187,6 +25834,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -24218,6 +25866,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -24712,6 +26361,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -24744,6 +26394,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -24788,6 +26439,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -24820,6 +26472,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -24848,6 +26501,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -24880,6 +26534,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -24998,6 +26653,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25030,6 +26686,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25144,6 +26801,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -25176,6 +26834,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -25220,6 +26879,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25252,6 +26912,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25703,6 +27364,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -25827,6 +27489,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25858,6 +27521,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25888,6 +27552,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25995,6 +27660,7 @@ export namespace Prisma {
     versionLabel?: string | null
     status?: string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: Date | string | null
     quickScore?: number | null
     brotliPresent?: boolean | null
@@ -26021,6 +27687,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -26052,6 +27719,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -26082,6 +27750,7 @@ export namespace Prisma {
     versionLabel?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     scanResult?: NullableJsonNullValueInput | InputJsonValue
+    emulationReadiness?: NullableJsonNullValueInput | InputJsonValue
     scannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     quickScore?: NullableIntFieldUpdateOperationsInput | number | null
     brotliPresent?: NullableBoolFieldUpdateOperationsInput | boolean | null

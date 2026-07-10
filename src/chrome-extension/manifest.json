@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "HTML5STUDIO — Compliance Wizard",
+  "short_name": "HTML5STUDIO",
+  "description": "Instant SDK migration guides for Meta, TikTok, Discord, YouTube, Poki, CrazyGames & LinkedIn game dev portals.",
+  "version": "1.0.0",
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "HTML5STUDIO Compliance Wizard"
+  },
+  "permissions": ["activeTab", "storage"],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://developers.facebook.com/games/*",
+        "*://developers.facebook.com/docs/games/*",
+        "*://discord.com/developers/*",
+        "*://developers.tiktok.com/*",
+        "*://developers.google.com/youtube/*",
+        "*://poki.com/en/developers*",
+        "*://developer.crazygames.com/*",
+        "*://business.linkedin.com/marketing-solutions/ads/playables*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": []
+}

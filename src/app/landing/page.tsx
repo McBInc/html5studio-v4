@@ -93,7 +93,7 @@ export default function LandingPage() {
       {/* 2. HERO: MISSION CRITICAL AUTHORITY */}
       <section style={{ ...styles.section }} className="pt-[100px] min-h-[70vh] flex flex-col justify-center">
         <div className="absolute top-0 left-0 w-full h-full opacity-12 z-0 pointer-events-none">
-           <img src="/Guaranteed_Live_Game_Link.jpg" className="w-full h-full object-cover" alt="Background Frontier Grid" />
+           <img src="/Guaranteed_Live_Game_Link.png" className="w-full h-full object-cover" alt="Background Frontier Grid" />
         </div>
         <div className="relative z-[1]">
           <div className="flex items-center gap-[10px] color-[#39FF14] mb-5">
@@ -229,7 +229,7 @@ export default function LandingPage() {
       <section style={styles.section} id="vault">
         <div className="text-center mb-[80px]">
            <img 
-             src="/WebGL_HTML5STUDIO_Certified_Seal.jpg" 
+             src="/WebGL_HTML5STUDIO_Certified_Seal.png" 
              className="w-[220px] mb-[30px] drop-shadow-[0_0_20px_rgba(57,255,20,0.2)] mx-auto" 
              alt="WebGLive Deployment Certification Authority Seal" 
            />

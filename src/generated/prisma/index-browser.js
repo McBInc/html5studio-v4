@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.4.0
- * Query Engine version: ab56fe763f921d033a6c195e7ddeb3e255bdbb57
+ * Prisma Client JS version: 7.8.0
+ * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
  */
 Prisma.prismaVersion = {
-  client: "7.4.0",
-  engine: "ab56fe763f921d033a6c195e7ddeb3e255bdbb57"
+  client: "7.8.0",
+  engine: "3c6e192761c0362d496ed980de936e2f3cebcd3a"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -162,6 +162,7 @@ exports.Prisma.BuildScalarFieldEnum = {
   versionLabel: 'versionLabel',
   status: 'status',
   scanResult: 'scanResult',
+  emulationReadiness: 'emulationReadiness',
   scannedAt: 'scannedAt',
   quickScore: 'quickScore',
   brotliPresent: 'brotliPresent',
@@ -305,6 +306,24 @@ exports.Prisma.AuthenticatorScalarFieldEnum = {
   transports: 'transports'
 };
 
+exports.Prisma.GameStudioScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  website: 'website',
+  contact_email: 'contact_email',
+  country: 'country',
+  studio_size: 'studio_size',
+  platforms: 'platforms',
+  games: 'games',
+  source_directory: 'source_directory',
+  compliance_risks: 'compliance_risks',
+  risk_level: 'risk_level',
+  tags: 'tags',
+  outreach_sent: 'outreach_sent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -338,7 +357,10 @@ exports.PlatformTarget = exports.$Enums.PlatformTarget = {
   DISCORD: 'DISCORD',
   TIKTOK: 'TIKTOK',
   YOUTUBE_PLAYABLES: 'YOUTUBE_PLAYABLES',
-  LINKEDIN_GAMES: 'LINKEDIN_GAMES'
+  LINKEDIN_GAMES: 'LINKEDIN_GAMES',
+  POKI: 'POKI',
+  CRAZYGAMES: 'CRAZYGAMES',
+  TENCENT_WECHAT: 'TENCENT_WECHAT'
 };
 
 exports.PublishStatus = exports.$Enums.PublishStatus = {
@@ -368,7 +390,8 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
-  Authenticator: 'Authenticator'
+  Authenticator: 'Authenticator',
+  GameStudio: 'GameStudio'
 };
 
 /**

@@ -13,18 +13,29 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ certId: st
       return NextResponse.json({ ok: false, error: "Missing certId" }, { status: 400 });
     }
 
-    // certId is @unique in your schema, so findUnique is the right call
-    const build = await prisma.build.findUnique({
-      where: { certId },
-      include: { project: true, launchProfile: true },
+    // certId is @unique in your schema, but we use findFirst for case-insensitive fallback.
+    // We order by scannedAt or createdAt DESC so that if one certId is reused (unlikely on UUIDs),
+    // we get the MOST RECENT forensics.
+    const build = await prisma.build.findFirst({
+      where: {
+        certId: {
+          equals: certId,
+          mode: 'insensitive' 
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      include: { 
+        project: true, 
+        launchProfile: true 
+      },
     });
 
     if (!build) {
-      // Helpful debug: show latest builds from THIS database (safe fields only)
-      const latest = await prisma.build.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 8,
-        select: { id: true, certId: true, createdAt: true, reportStatus: true },
+      // Diagnostic: Find the latest 3 builds to see what exists in THIS database.
+      const latestBuilds = await prisma.build.findMany({
+          take: 3,
+          orderBy: { createdAt: 'desc' },
+          select: { certId: true, createdAt: true }
       });
 
       return NextResponse.json(
@@ -33,9 +44,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ certId: st
           error: "Report not found",
           hint: {
             requestedCertId: certId,
-            latestBuilds: latest,
-            note:
-              "If requestedCertId is not present in latestBuilds, scan writes are likely going to a different DB/env.",
+            latestBuildsInThisDatabase: latestBuilds,
+            serverDiagnostics: "Alpha-9 Forensic Suite (V72) Database Check"
           },
         },
         { status: 404 }
@@ -58,6 +68,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ certId: st
         // UI expects scanResult
         scanResult: build.scanResult ?? null,
 
+        emulationReadiness: build.emulationReadiness ?? null,
         liveUrl: build.liveUrl ?? null,
 
         // publishEvidence exists in your newer flow (may not exist in DB yet)

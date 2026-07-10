@@ -1,7 +1,7 @@
 // src/app/portfolio/[slug]/page.tsx
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { caseStudies } from '../../../lib/portfolio/caseStudies';
+import { caseStudies } from '@/lib/portfolio/caseStudies';
 
 type PageProps = {
   params: { slug: string };

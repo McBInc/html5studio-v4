@@ -1,0 +1,6 @@
+/* HTML5STUDIO Extension — Content Script Styles */
+/* Isolated to avoid conflicts with host page */
+
+#html5studio-banner * {
+  box-sizing: border-box;
+}

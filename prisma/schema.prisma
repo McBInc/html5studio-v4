@@ -64,6 +64,7 @@ model Build {
   versionLabel     String?
   status           String         @default("scanned")
   scanResult       Json?
+  emulationReadiness Json?
   scannedAt        DateTime?
   quickScore       Int?
   brotliPresent    Boolean?
@@ -252,6 +253,9 @@ enum PlatformTarget {
   TIKTOK
   YOUTUBE_PLAYABLES
   LINKEDIN_GAMES
+  POKI
+  CRAZYGAMES
+  TENCENT_WECHAT
 }
 
 enum PublishMode {
@@ -265,4 +269,23 @@ enum PublishStatus {
   SUCCEEDED
   FAILED
   CANCELLED
+}
+
+// [VSA INTERFACE 4: SYSTEM 3 CONTROL] - Structural Intelligence Storage
+model GameStudio {
+  id               String   @id @default(cuid())
+  name             String   @unique
+  website          String?
+  contact_email    String?
+  country          String?
+  studio_size      String?
+  platforms        String[]
+  games            String[]
+  source_directory String?
+  compliance_risks String[]
+  risk_level       String?
+  tags             String[]
+  outreach_sent    Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

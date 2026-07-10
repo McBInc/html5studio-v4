@@ -1,0 +1,58 @@
+name: Alpha-9 Forensic Video Agent
+
+on:
+  repository_dispatch:
+    types: [trigger-alpha9-video-agent]
+  workflow_dispatch:
+    inputs:
+      zipUrl:
+        description: 'URL of the .zip file to scan (e.g. from R2)'
+        required: true
+        type: string
+      certId:
+        description: 'Certification ID (e.g. CERT-2024-XXXX)'
+        required: true
+        type: string
+
+jobs:
+  forensic-playwright-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Project Dependencies
+        run: npm install
+
+      - name: Install Playwright & Headless Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Download .ZIP Payload
+        env:
+          ZIP_URL: ${{ github.event.client_payload.zipUrl || inputs.zipUrl }}
+        run: curl -L $ZIP_URL -o game-build.zip
+
+      - name: Execute Alpha-9 Forensic Emulation Agent
+        env:
+          ZIP_PATH: game-build.zip
+          CERT_ID: ${{ github.event.client_payload.certId || inputs.certId }}
+          SCANNER_URL: http://localhost:3000
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          npx tsx src/lib/agents/alpha9-github-runner.ts
+
+      - name: Notify Backend of Completion
+        if: always()
+        run: |
+          curl -X POST https://your-production-url.com/api/agents/audit-complete \
+          -H "Content-Type: application/json" \
+          -d '{"status": "${{ job.status }}", "certId": "${{ github.event.client_payload.certId || inputs.certId }}"}'

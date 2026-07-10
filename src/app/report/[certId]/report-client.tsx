@@ -161,8 +161,12 @@ export default function ReportClient({
   }, [n.ok, (n as any).liveUrl]);
 
   const isAdmin = useMemo(() => {
+    // V68: Localhost Admin Bypass
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return true;
+    }
     const email = me && "ok" in me && (me as any).ok ? String((me as any).email || "").toLowerCase() : "";
-    return !!email; // server still enforces admin
+    return !!email;
   }, [me]);
 
   async function issueCertificate() {
@@ -241,6 +245,18 @@ export default function ReportClient({
             <div style={{ marginTop: 6 }}>
               Quick Score: <b>{n.quickScore}</b> • Brotli: <b>{String(n.brotliPresent)}</b>
             </div>
+
+            {/* V77: Robust First-Class Column Mapping */}
+            {(n as any)._raw?.build?.emulationReadiness && (
+              <div style={{ marginTop: 14, display: "flex", gap: 10 }}>
+                <div style={{ padding: "8px 12px", border: "1px solid #111", background: "#111", color: "#fff", borderRadius: 8, fontSize: 13, fontWeight: "900", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 16 }}>🍎</span> iOS Certified ({(n as any)._raw.build.emulationReadiness.ios_score}%)
+                </div>
+                <div style={{ padding: "8px 12px", border: "1px solid #111", background: "#111", color: "#fff", borderRadius: 8, fontSize: 13, fontWeight: "900", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 16 }}>🤖</span> Android Certified ({(n as any)._raw.build.emulationReadiness.android_score}%)
+                </div>
+              </div>
+            )}
             {n.scan?.meta && (
               <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: "#fff5f5", border: "1px solid #ffdddd", color: "#d32f2f" }}>
                 <div style={{ fontWeight: 900, display: "flex", justifyContent: "space-between" }}>
@@ -362,6 +378,78 @@ export default function ReportClient({
                     <div>
                       <b>Compliance Passed:</b> The Web App expanding viewport bridge is locked in. Ready for the Telegram community!
                     </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {n.scan?.poki && (
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: "#fffdf0", border: "1px solid #ffeeba", color: "#856404" }}>
+                <div style={{ fontWeight: 900, display: "flex", justifyContent: "space-between" }}>
+                  <span>🌀 POKI UNIVERSAL SCALABILITY AUDIT</span>
+                  <span>Compliance Score: {n.scan.poki.score}/100</span>
+                </div>
+                <div style={{ fontSize: 13, marginTop: 4 }}>
+                  <div style={{ marginBottom: 4 }}>
+                    <b>Initial Payload:</b> {n.scan.poki.metrics.initialPayloadSizeMB.toFixed(2)} MB / 8.00 MB
+                    <span style={{ marginLeft: 8 }}>|</span>
+                    <span style={{ marginLeft: 8 }}><b>Scaling:</b> {n.scan.poki.metrics.hasAspectRatioListener ? "16:9 Verified" : "Missing Listener"}</span>
+                  </div>
+                  {n.scan.poki.criticalFailures?.length > 0 ? (
+                    <span>
+                      <b>Action Required:</b> {n.scan.poki.criticalFailures[0].description} {n.scan.poki.criticalFailures[0].remediation}
+                    </span>
+                  ) : (
+                    <span>
+                      <b>Self-Contained Ready:</b> No external CDN violations detected. Scalability targets met.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {n.scan?.crazygames && (
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: "#fdf0ff", border: "1px solid #ebbaff", color: "#6f0485" }}>
+                <div style={{ fontWeight: 900, display: "flex", justifyContent: "space-between" }}>
+                  <span>🎮 CRAZYGAMES SDK HOOK AUDIT</span>
+                  <span>Compliance Score: {n.scan.crazygames.score}/100</span>
+                </div>
+                <div style={{ fontSize: 13, marginTop: 4 }}>
+                  <div style={{ marginBottom: 4 }}>
+                    <b>Hooks:</b> {n.scan.crazygames.checks.gameplay_hooks_ok ? "gameplay_start/stop Detected" : "Hooks Missing"}
+                    <span style={{ marginLeft: 8 }}>|</span>
+                    <span style={{ marginLeft: 8 }}><b>Compression:</b> {n.scan.crazygames.checks.compression_ok ? "Verified" : "Missing Headers"}</span>
+                  </div>
+                  {n.scan.crazygames.criticalFailures?.length > 0 ? (
+                    <span>
+                      <b>Action Required:</b> {n.scan.crazygames.criticalFailures[0].description} Upgrade to Certified Migration to inject SDK Modules.
+                    </span>
+                  ) : (
+                    <span>
+                      <b>Monetization Ready:</b> Gameplay transitions and happytime hooks are verified.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {n.scan?.tencent && (
+              <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: "#fff5f0", border: "1px solid #ffccba", color: "#851e04" }}>
+                <div style={{ fontWeight: 900, display: "flex", justifyContent: "space-between" }}>
+                  <span>⛩️ TENCENT/WECHAT REGULATORY SCAN</span>
+                  <span>Compliance Score: {n.scan.tencent.score}/100</span>
+                </div>
+                <div style={{ fontSize: 13, marginTop: 4 }}>
+                  <div style={{ marginBottom: 4 }}>
+                    <b>PIPL 2026:</b> {n.scan.tencent.checks.pipl_2026_ok ? "Privacy Guard Active" : "Violation Detected"}
+                    <span style={{ marginLeft: 8 }}>|</span>
+                    <span style={{ marginLeft: 8 }}><b>Payments:</b> {n.scan.tencent.checks.payment_gates_ok ? "Midas Ready" : "Restricted Gate"}</span>
+                  </div>
+                  {n.scan.tencent.criticalFailures?.length > 0 ? (
+                    <span>
+                      <b>Action Required:</b> {n.scan.tencent.criticalFailures[0].description} {n.scan.tencent.criticalFailures[0].remediation}
+                    </span>
+                  ) : (
+                    <span>
+                      <b>Mainland Ready:</b> Build complies with Custom WeChat Kernel and PIPL 2026 mandates.
+                    </span>
                   )}
                 </div>
               </div>

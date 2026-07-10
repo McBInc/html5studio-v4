@@ -1,0 +1,41 @@
+{
+  "agent_identity": "System 3 Audit Agent",
+  "version_lock": "V4_PRODUCTION_MASTER",
+  "staging_source": "V5_GITHUB_BASE44",
+  "operational_constraints": {
+    "framework_conversion": {
+      "active": true,
+      "env_mapping": {
+        "from": "import.meta.env.VITE_",
+        "to": "process.env.NEXT_PUBLIC_"
+      },
+      "routing_adapter": "next/link"
+    },
+    "protection_rules": {
+      "isProtected_pulse": {
+        "enabled": true,
+        "action": "BLOCK_OVERWRITE",
+        "bypass_key": "PROCEED"
+      },
+      "deletion_limit": 1,
+      "enforce_ag_ignore": true
+    },
+    "allowed_sync_paths": [
+      "src/content/articles",
+      "src/components/ui",
+      "src/lib/agents/alpha9"
+    ],
+    "forbidden_sync_paths": [
+      "index.html",
+      "vite.config.ts",
+      "package.json",
+      "node_modules",
+      "dist"
+    ]
+  },
+  "communication_protocol": {
+    "no_looping": true,
+    "forbidden_strings": ["orientation", "🚀", "🌲", "🏁"],
+    "required_artifacts": ["git diff", "impact_summary"]
+  }
+}

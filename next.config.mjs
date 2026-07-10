@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   async headers() {
+    /* 
     return [
       {
         source: "/api/:path*",
@@ -12,6 +13,30 @@ const nextConfig = {
           { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-filename" },
         ],
       },
+    ];
+    */
+    return [
+      {
+        source: "/temp-builds/:path*(.js.br)",
+        headers: [
+          { key: "Content-Encoding", value: "br" },
+          { key: "Content-Type", value: "application/javascript" },
+        ],
+      },
+      {
+        source: "/temp-builds/:path*(.wasm.br)",
+        headers: [
+          { key: "Content-Encoding", value: "br" },
+          { key: "Content-Type", value: "application/wasm" },
+        ],
+      },
+      {
+        source: "/temp-builds/:path*(.data.br)",
+        headers: [
+          { key: "Content-Encoding", value: "br" },
+          { key: "Content-Type", value: "application/octet-stream" },
+        ],
+      }
     ];
   },
 };

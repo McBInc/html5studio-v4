@@ -10,7 +10,7 @@ import {
   type CaseStudy,
   type IssueTag,
   type PortfolioPlatform,
-} from '../../lib/portfolio/caseStudies';
+} from '@/lib/portfolio/caseStudies';
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (

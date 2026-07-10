@@ -1,6 +1,68 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@theme {
+  --font-inter: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-background: hsl(240 10% 4%);
+  --color-foreground: hsl(0 0% 95%);
+  --color-card: hsl(240 8% 7%);
+  --color-card-foreground: hsl(0 0% 95%);
+  --color-popover: hsl(240 8% 7%);
+  --color-popover-foreground: hsl(0 0% 95%);
+  --color-primary: hsl(219 87% 52%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(240 6% 12%);
+  --color-secondary-foreground: hsl(0 0% 85%);
+  --color-muted: hsl(240 6% 14%);
+  --color-muted-foreground: hsl(240 4% 55%);
+  --color-accent: hsl(219 87% 52%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-destructive: hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(240 6% 16%);
+  --color-input: hsl(240 6% 16%);
+  --color-ring: hsl(219 87% 52%);
+  --color-chart-1: hsl(219 87% 52%);
+  --color-chart-2: hsl(219 87% 60%);
+  --color-chart-3: hsl(197 37% 24%);
+  --color-chart-4: hsl(43 74% 66%);
+  --color-chart-5: hsl(27 87% 67%);
+  --color-sidebar-background: hsl(240 8% 6%);
+  --color-sidebar-foreground: hsl(0 0% 95%);
+  --color-sidebar-primary: hsl(219 87% 52%);
+  --color-sidebar-primary-foreground: hsl(0 0% 100%);
+  --color-sidebar-accent: hsl(240 6% 12%);
+  --color-sidebar-accent-foreground: hsl(0 0% 95%);
+  --color-sidebar-border: hsl(240 6% 16%);
+  --color-sidebar-ring: hsl(219 87% 52%);
+  --radius-lg: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+    margin: 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(240 10% 4%);
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(240 6% 20%);
+  border-radius: 3px;
+}
 
 @keyframes marquee {
   0% { transform: translateX(0); }
@@ -11,8 +73,56 @@
   animation: marquee 30s linear infinite;
 }
 
-body {
-  background: #0f0f1b;
-  color: white;
-  margin: 0;
+.terminal-glow {
+  text-shadow: 0 0 8px currentColor;
+}
+
+/* Grid background pattern */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(30, 111, 240, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 111, 240, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Scanline effect */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+}
+
+/* HIGH-FIDELITY ARTICLE FORMATTING (V5 VERBATIM) */
+.prose-custom h2 {
+  @apply text-2xl font-black mt-12 mb-5 text-white uppercase tracking-tight italic;
+}
+.prose-custom p {
+  @apply text-foreground/80 leading-relaxed mb-6 text-lg;
+}
+.prose-custom strong {
+  @apply text-white font-bold;
+}
+.prose-custom ul {
+  @apply space-y-3 mb-8;
+}
+.prose-custom li {
+  @apply text-foreground/80 leading-relaxed text-base flex items-start gap-2;
+}
+.prose-custom li::before {
+  content: "→";
+  @apply text-primary font-bold shrink-0 mt-0.5;
+}
+.prose-custom code {
+  @apply font-mono bg-white/5 px-1.5 py-0.5 rounded text-primary border border-white/5;
+}
+.prose-custom blockquote {
+  @apply border-l-2 border-primary/30 pl-6 my-8 italic text-foreground/60;
 }
