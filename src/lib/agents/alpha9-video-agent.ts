@@ -132,8 +132,8 @@ export async function runForensicVideoAgent(zipPath: string, certId: string, sca
     await page.goto(scannerUrl, { waitUntil: 'load', timeout: 60000 });
     console.log(`[AGENT] Landing Page Loaded.`);
     
-    await page.evaluate((id) => {
-        window.ALPHA9_CERT_ID = id;
+    await page.evaluate((id: string) => {
+        (window as any).ALPHA9_CERT_ID = id;
         console.log(`[AGENT] Injected Forensic CERT_ID: ${id}`);
         const el = document.getElementById('diagnostics');
         if (el) el.scrollIntoView({ behavior: 'auto', block: 'center' });

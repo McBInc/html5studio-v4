@@ -15,8 +15,8 @@ export default function Navbar() {
 
   const links = [
     { label: "How It Works", href: "/#how-it-works" },
-    { label: "Diagnostics", href: "/#diagnostics" },
-    { label: "Certification", href: "/#certification" },
+    { label: "Directory", href: "/studiodirectory", isPage: true },
+    { label: "Intelligence", href: "/intelligencecentre", isPage: true },
     { label: "Pricing", href: "/#pricing" },
   ];
 
