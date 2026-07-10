@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     if (["POKI", "CRAZYGAMES", "TENCENT_WECHAT"].includes(platformTarget)) {
         console.log(`[V55-INJECTOR] Patching ${platformTarget} Hooks...`);
         const { outZip } = await patchPlatformHooksInZip(buffer);
-        finalBuffer = outZip;
+        finalBuffer = outZip as any;
     }
 
     const emulationPath = path.join(process.cwd(), "public", "temp-builds", certId);
