@@ -14,10 +14,10 @@ export default function Navbar() {
   }, []);
 
   const links = [
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Diagnostics", href: "#diagnostics" },
-    { label: "Certification", href: "#certification" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "How It Works", href: "/#how-it-works" },
+    { label: "Diagnostics", href: "/#diagnostics" },
+    { label: "Certification", href: "/#certification" },
+    { label: "Pricing", href: "/#pricing" },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-0">
+        <a href="/" className="flex items-center gap-0">
           <span className="text-xl font-bold tracking-tight text-foreground">HTML</span>
           <span className="text-xl font-bold tracking-tight" style={{ color: "#1e6ff0" }}>5</span>
           <span className="text-xl font-bold tracking-tight" style={{ color: "#FF6B00" }}>STUDIO</span>
@@ -53,7 +53,7 @@ export default function Navbar() {
             </a>
           ))}
           <a
-            href="#cta"
+            href="/#cta"
             className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-all"
           >
             Free Diagnosis
@@ -87,7 +87,7 @@ export default function Navbar() {
             </a>
           ))}
           <a
-            href="#cta"
+            href="/#cta"
             onClick={() => setMobileOpen(false)}
             className="inline-block mt-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg"
           >
