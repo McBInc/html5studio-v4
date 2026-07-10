@@ -53,3 +53,5 @@ mega-test-out.json
 *.tmp
 *.bak
 *.csv
+
+public/temp-builds
