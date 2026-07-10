@@ -2,7 +2,13 @@
 // These methods should be migrated to native Next.js API routes / Prisma queries.
 export const base44 = {
   db: {},
-  auth: {},
+  auth: {
+    redirectToLogin: (callbackUrl) => {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/signin';
+      }
+    }
+  },
   entities: {
     PlatformAlert: {
       filter: () => Promise.resolve([])
