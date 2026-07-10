@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         projectId: project.id,
         userId: user.id,
         status: "certified",
-        platformTarget,
+        platformTarget: platformTarget as any,
         reportStatus: "draft",
         scannedAt: new Date(),
         scanResult: scan as any,
