@@ -37,8 +37,9 @@ const DEMO_REPORT = {
 
 export default function Registry() {
   // Read cert ID from URL query param: /Registry?certId=WGL-CERT-2026-AAA-8801
-  const urlParams = new URLSearchParams(window.location.search);
-  const certId = urlParams.get("certId");
+  const certId = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("certId")
+    : null;
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["cert-report", certId],
