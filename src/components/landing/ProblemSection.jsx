@@ -142,7 +142,7 @@ export default function ProblemSection() {
                     <h3 className="text-base font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
                     <Link
-                      to={`/article/${item.slug}`}
+                      href={`/article/${item.slug}`}
                       className="inline-block mt-3 text-xs font-mono underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity"
                       style={{ color: item.color }}
                     >

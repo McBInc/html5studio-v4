@@ -23,8 +23,8 @@ export default function Footer() {
           </p>
 
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            <Link to="/about" className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors">About</Link>
-            <Link to="/contact" className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors">Contact</Link>
+            <Link href="/about" className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors">About</Link>
+            <Link href="/contact" className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors">Contact</Link>
             <button
               onClick={handleAdminLogin}
               className="text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors"

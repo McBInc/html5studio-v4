@@ -416,7 +416,7 @@ export default function TopicalMapSection() {
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">{activePillar.description}</p>
                     <Link
-                      to={`/PillarDetail/${activePillar.id}`}
+                      href={`/PillarDetail/${activePillar.id}`}
                       className="inline-flex items-center gap-1.5 mt-3 text-xs font-mono font-semibold hover:opacity-80 transition-opacity"
                       style={{ color: activePillar.color }}
                     >

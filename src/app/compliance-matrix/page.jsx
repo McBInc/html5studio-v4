@@ -240,7 +240,7 @@ export default function PlatformComplianceMatrix() {
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-6 pt-32 pb-24">
-        <Link to="/IntelligenceCentre" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
+        <Link href="/IntelligenceCentre" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
           <ArrowLeft className="w-3.5 h-3.5" />
           Intelligence Centre
         </Link>

@@ -77,7 +77,7 @@ function PageRow({ page, color }) {
   const urg = URGENCY_COLORS[page.urgency];
   return (
     <Link
-      to={page.path}
+      href={page.path}
       className="flex items-start gap-3 px-4 py-3 rounded-lg hover:bg-white/4 transition-colors group"
     >
       <ChevronRight className="w-3.5 h-3.5 mt-1 shrink-0 opacity-30 group-hover:opacity-70 transition-opacity" style={{ color }} />

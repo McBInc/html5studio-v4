@@ -251,7 +251,7 @@ function RiskFlag({ flag, index }) {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="px-4 pb-4 border-t border-white/5">
               <p className="text-sm text-foreground/70 leading-relaxed pt-3 mb-3">{flag.detail}</p>
-              <Link to={`/article/${flag.source}`} className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold hover:opacity-80 transition-opacity" style={{ color: cfg.color }}>
+              <Link href={`/article/${flag.source}`} className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold hover:opacity-80 transition-opacity" style={{ color: cfg.color }}>
                 Read full intelligence → /article/{flag.source}
               </Link>
             </div>
@@ -564,7 +564,7 @@ function ResultsStep({ result, profile, answers, onBack }) {
 
         {/* Always show checklist link */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link to="/compliance-matrix" className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm border border-white/10 text-muted-foreground hover:bg-white/5 transition-all">
+          <Link href="/compliance-matrix" className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm border border-white/10 text-muted-foreground hover:bg-white/5 transition-all">
             View Platform Fix Checklist
           </Link>
           <button onClick={onBack} className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm border border-white/10 text-muted-foreground hover:bg-white/5 transition-all">
@@ -627,7 +627,7 @@ export default function Sept30RiskAssessor() {
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-6 pt-32 pb-24">
-        <Link to="/IntelligenceCentre" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
+        <Link href="/IntelligenceCentre" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
           <ArrowLeft className="w-3.5 h-3.5" />
           Intelligence Centre
         </Link>

@@ -129,7 +129,7 @@ function RelatedIntelligence({ siblings, crossPillar }) {
             <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40 mb-2">Same Pillar</p>
             <div className="space-y-2">
               {siblings.map((s) => (
-                <Link key={s.slug} to={`/article/${s.slug}`} className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group">
+                <Link key={s.slug} href={`/article/${s.slug}`} className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group">
                   <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
                   {s.title}
                   {s.urgency && <span className="text-[8px] font-black font-mono px-1.5 py-0.5 rounded ml-1" style={{ background: s.urgency === "critical" ? "rgba(238,29,82,0.15)" : "rgba(255,107,0,0.15)", color: s.urgency === "critical" ? "#EE1D52" : "#FF6B00" }}>{s.urgency.toUpperCase()}</span>}
@@ -143,7 +143,7 @@ function RelatedIntelligence({ siblings, crossPillar }) {
             <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/40 mb-2">Cross-Pillar</p>
             <div className="space-y-2">
               {crossPillar.map((s) => (
-                <Link key={s.slug} to={`/article/${s.slug}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                <Link key={s.slug} href={`/article/${s.slug}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group">
                   <span className="w-1 h-1 rounded-full bg-muted-foreground/30 group-hover:bg-muted-foreground transition-colors" />
                   {s.title}
                 </Link>
@@ -229,7 +229,7 @@ export default function ArticleLayout({ article }) {
       <div className="max-w-3xl mx-auto px-6 pt-32 pb-24">
 
         {/* Back nav */}
-        <Link to="/IntelligenceCentre" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
+        <Link href="/IntelligenceCentre" className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8">
           <ArrowLeft className="w-3.5 h-3.5" />
           Intelligence Centre
         </Link>

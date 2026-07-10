@@ -164,7 +164,7 @@ export default function PillarDetail() {
       <div className="min-h-screen bg-background text-foreground font-inter flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Pillar not found.</p>
-          <Link to="/IntelligenceCentre" className="text-primary underline">Back to Intelligence Centre</Link>
+          <Link href="/IntelligenceCentre" className="text-primary underline">Back to Intelligence Centre</Link>
         </div>
       </div>
     );
@@ -192,7 +192,7 @@ export default function PillarDetail() {
           {/* Breadcrumb */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <Link
-              to="/IntelligenceCentre"
+              href="/IntelligenceCentre"
               className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-10 group"
             >
               <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
@@ -295,7 +295,7 @@ export default function PillarDetail() {
                 return (
                   <Link
                     key={lp.id}
-                    to={`/PillarDetail/${lp.id}`}
+                    href={`/PillarDetail/${lp.id}`}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all duration-200 hover:scale-105"
                     style={{ borderColor: `${lp.color}30`, color: lp.color, background: `${lp.color}08` }}
                   >
@@ -312,7 +312,7 @@ export default function PillarDetail() {
           <div className="mt-12 flex items-center justify-between gap-4">
             {prevPillar ? (
               <Link
-                to={`/PillarDetail/${prevPillar.id}`}
+                href={`/PillarDetail/${prevPillar.id}`}
                 className="flex items-center gap-2 px-4 py-3 rounded-xl border border-white/8 hover:border-white/20 transition-all text-sm text-muted-foreground hover:text-foreground group"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -321,7 +321,7 @@ export default function PillarDetail() {
             ) : <div />}
             {nextPillar ? (
               <Link
-                to={`/PillarDetail/${nextPillar.id}`}
+                href={`/PillarDetail/${nextPillar.id}`}
                 className="flex items-center gap-2 px-4 py-3 rounded-xl border border-white/8 hover:border-white/20 transition-all text-sm text-muted-foreground hover:text-foreground group"
               >
                 <span>{nextPillar.label}</span>
